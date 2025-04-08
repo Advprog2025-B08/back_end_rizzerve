@@ -4,8 +4,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
 class RatingTest {
@@ -32,13 +31,13 @@ class RatingTest {
         User user = User.builder().id(1L).name("Daniel").build();
         Product product = Product.builder().id(1L).name("Daniel").build();
 
-        Rating rating = Rating.builder()
-                .id(1L)
-                .user(user)
-                .product(product)
-                .ratingValue(6)
-                .build();
-
-        assertNull(rating);
+        assertThrows(IllegalArgumentException.class, () -> {
+            Rating.builder()
+                    .id(1L)
+                    .user(user)
+                    .product(product)
+                    .ratingValue(6)
+                    .build();
+        });
     }
 }
