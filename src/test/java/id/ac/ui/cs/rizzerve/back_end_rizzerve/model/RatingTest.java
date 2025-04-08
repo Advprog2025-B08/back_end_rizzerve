@@ -4,6 +4,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 @SpringBootTest
 class RatingTest {
@@ -23,5 +25,19 @@ class RatingTest {
         assertThat(rating.getUser().getName()).isEqualTo("Daniel");
         assertThat(rating.getProduct().getName()).isEqualTo("Nasi Goreng");
         assertThat(rating.getRatingValue()).isEqualTo(5);
+    }
+
+    @Test
+    void createRating_Failure() {
+        User user = User.builder().id(1L).name("Daniel").build();
+        Product product = Product.builder().id(1L).name("Daniel").build();
+
+        Rating rating = Rating.builder()
+                .id(1L)
+                .user(user)
+                .product(product)
+                .build();
+
+        assertNull(rating);
     }
 }
