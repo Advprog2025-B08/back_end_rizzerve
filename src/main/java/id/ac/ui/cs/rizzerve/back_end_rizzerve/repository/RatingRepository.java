@@ -3,8 +3,10 @@ package id.ac.ui.cs.rizzerve.back_end_rizzerve.repository;
 import id.ac.ui.cs.rizzerve.back_end_rizzerve.model.Rating;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 public class RatingRepository {
 
@@ -20,5 +22,11 @@ public class RatingRepository {
 
     public void deleteById(Long id) {
         storage.remove(id);
+    }
+
+    public List<Rating> findAllByProductId(Long productId) {
+        return storage.values().stream()
+                .filter(r -> r.getProduct().getId().equals(productId))
+                .collect(Collectors.toList());
     }
 }
