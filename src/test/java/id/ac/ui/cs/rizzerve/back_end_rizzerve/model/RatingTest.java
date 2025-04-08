@@ -36,6 +36,7 @@ class RatingTest {
                 .id(1L)
                 .user(user)
                 .product(product)
+                .ratingValue(6)
                 .build();
 
         assertNull(rating);
