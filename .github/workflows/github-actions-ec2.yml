@@ -1,0 +1,41 @@
+name: Push-to-EC2
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  deploy:
+    name: Deploy to EC2 on master branch push
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout the files
+        uses: actions/checkout@v2
+
+      - name: Deploy to EC2 via SSH
+        uses: easingthemes/ssh-deploy@main
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.EC2_SSH_KEY }}
+          REMOTE_HOST: ${{ secrets.HOST_DNS }}
+          REMOTE_USER: ${{ secrets.USERNAME }}
+          TARGET: /home/ec2-user/deploy_temp
+
+      - name: Run Remote Commands
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.HOST_DNS }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            sudo yum update -y
+            sudo yum install -y httpd
+
+            sudo systemctl enable httpd
+            sudo systemctl start httpd
+
+            sudo rm -rf /var/www/html/*
+            sudo cp -r /home/ec2-user/deploy_temp/* /var/www/html/
+            sudo chown -R apache:apache /var/www/html/
+            sudo systemctl restart httpd
