@@ -1,5 +1,8 @@
 package id.ac.ui.cs.rizzerve.back_end_rizzerve.model;
 
+import id.ac.ui.cs.rizzerve.back_end_rizzerve.rating.model.Product;
+import id.ac.ui.cs.rizzerve.back_end_rizzerve.rating.model.Rating;
+import id.ac.ui.cs.rizzerve.back_end_rizzerve.rating.model.User;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 

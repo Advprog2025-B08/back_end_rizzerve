@@ -1,4 +1,4 @@
-package id.ac.ui.cs.rizzerve.back_end_rizzerve.service.strategy;
+package id.ac.ui.cs.rizzerve.back_end_rizzerve.rating.service.strategy;
 
 import java.util.List;
 

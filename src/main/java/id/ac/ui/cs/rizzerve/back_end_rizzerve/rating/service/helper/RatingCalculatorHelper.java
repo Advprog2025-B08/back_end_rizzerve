@@ -1,4 +1,4 @@
-package id.ac.ui.cs.rizzerve.back_end_rizzerve.service.helper;
+package id.ac.ui.cs.rizzerve.back_end_rizzerve.rating.service.helper;
 
 public class RatingCalculatorHelper {
 

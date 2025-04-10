@@ -1,9 +1,11 @@
 package id.ac.ui.cs.rizzerve.back_end_rizzerve.service;
 
-import id.ac.ui.cs.rizzerve.back_end_rizzerve.model.Product;
-import id.ac.ui.cs.rizzerve.back_end_rizzerve.model.Rating;
-import id.ac.ui.cs.rizzerve.back_end_rizzerve.model.User;
-import id.ac.ui.cs.rizzerve.back_end_rizzerve.repository.RatingRepository;
+import id.ac.ui.cs.rizzerve.back_end_rizzerve.rating.model.Product;
+import id.ac.ui.cs.rizzerve.back_end_rizzerve.rating.model.Rating;
+import id.ac.ui.cs.rizzerve.back_end_rizzerve.rating.model.User;
+import id.ac.ui.cs.rizzerve.back_end_rizzerve.rating.repository.RatingRepository;
+import id.ac.ui.cs.rizzerve.back_end_rizzerve.rating.service.RatingService;
+import id.ac.ui.cs.rizzerve.back_end_rizzerve.rating.service.RatingServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
