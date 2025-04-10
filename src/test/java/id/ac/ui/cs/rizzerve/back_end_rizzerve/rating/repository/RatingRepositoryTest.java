@@ -1,4 +1,4 @@
-package id.ac.ui.cs.rizzerve.back_end_rizzerve.repository;
+package id.ac.ui.cs.rizzerve.back_end_rizzerve.rating.repository;
 
 import id.ac.ui.cs.rizzerve.back_end_rizzerve.rating.model.Product;
 import id.ac.ui.cs.rizzerve.back_end_rizzerve.rating.model.Rating;
