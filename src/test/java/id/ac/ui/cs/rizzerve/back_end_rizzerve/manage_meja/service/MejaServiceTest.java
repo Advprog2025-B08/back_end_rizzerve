@@ -23,10 +23,8 @@ public class MejaServiceTest {
 
     @Test
     void testCreateMeja() {
-        Meja meja = new Meja();
-        meja.setNomor(1);
-        mejaService.createMeja(meja);
-        verify(mejaRepository, times(1)).createMeja(meja);
+        mejaService.createMeja(1);
+        verify(mejaRepository, times(1)).createMeja(1);
     }
 
     @Test
@@ -37,7 +35,7 @@ public class MejaServiceTest {
 
     @Test
     void testDeleteMeja() {
-        mejaService.deleteMeja(1);
+        mejaService.deleteMeja("1");
         verify(mejaRepository, times(1)).deleteMeja("1");
     }
 
@@ -48,7 +46,7 @@ public class MejaServiceTest {
         Meja meja2 = new Meja();
         meja.setNomor(2);
         List<Meja> dummyList = List.of(meja, meja2);
-        when(mejaRepository.findAll()).thenReturn(dummyList);
+        when(mejaRepository.getAllMejas()).thenReturn(dummyList);
 
         List<Meja> result = mejaService.getAllMeja();
         assertEquals(2, result.size());
@@ -58,7 +56,7 @@ public class MejaServiceTest {
     void testGetMejaById() {
         Meja meja = new Meja();
         meja.setNomor(1);
-        when(mejaRepository.findById(1)).thenReturn(meja);
+        when(mejaRepository.getMejaByNomor(1)).thenReturn(meja);
 
         Meja result = mejaService.getMejaById(1);
         assertEquals(1, result.getNomor());
