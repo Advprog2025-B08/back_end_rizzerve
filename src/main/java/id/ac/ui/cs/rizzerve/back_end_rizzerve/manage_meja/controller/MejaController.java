@@ -61,9 +61,12 @@ public class MejaController {
 
     @GetMapping("/read/{meja_id}")
     public ResponseEntity<?> getMejaById(@PathVariable("meja_id") String mejaId) {
-        Optional<Meja> meja = mejaService.getMejaById(mejaId);
-        return meja.map(ResponseEntity::ok)
-                .orElse(ResponseEntity.badRequest().body(Map.of("errorCode", 8202, "message", "Request param meja_id is not found")));
+        int id_val = Integer.valueOf(mejaId);
+        Meja meja = mejaService.getMejaById(id_val);
+        if (meja == null) {
+            ResponseEntity.badRequest().body(Map.of("errorCode", 8202, "message", "Request param meja_id is not found"));
+        }
+        return ResponseEntity.ok(Map.of("meja", meja));
     }
 
     @PostMapping("/set/{meja_id}")
