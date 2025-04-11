@@ -25,15 +25,17 @@ public class MejaRepository {
     }
 
     public void createMeja(int Nomor) {
-        Meja meja = new Meja();
-        meja.setId(UUID.randomUUID().toString());
-        meja.setNomor(Nomor);
-        MejaData.add(meja);
+        if (checkUnique(Nomor)) {
+            Meja meja = new Meja();
+            meja.setId(UUID.randomUUID().toString());
+            meja.setNomor(Nomor);
+            MejaData.add(meja);
+        }
     }
 
     public void updateMeja(int oldNum, int newNum) {
         Meja meja = getMejaByNomor(oldNum);
-        if (meja != null) {
+        if (meja != null && checkUnique(newNum)) {
             meja.setNomor(newNum);
         }
     }
@@ -48,7 +50,7 @@ public class MejaRepository {
 
     public void setUser(int MejaNum, int userId) {
         Meja meja = getMejaByNomor(MejaNum);
-        if (meja != null) {
+        if (meja != null && meja.getUser() == null) {
             User dummyUser = new User();
             dummyUser.setId(userId);
             dummyUser.setEmail("dummy@email.com");
