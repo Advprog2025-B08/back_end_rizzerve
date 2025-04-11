@@ -44,8 +44,8 @@ public class MejaRepository {
         return null;
     }
 
-    public void deleteMeja(String id) {
-        MejaData.removeIf(meja -> meja.getId().equals(id));
+    public boolean deleteMeja(String id) {
+        return MejaData.removeIf(meja -> meja.getId().equals(id));
     }
 
     public boolean checkUnique(int Nomor) {
