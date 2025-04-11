@@ -52,7 +52,7 @@ public class MejaRepository {
         return getMejaByNomor(Nomor) == null;
     }
 
-    public void setUser(int MejaNum, int userId) {
+    public Meja setUser(int MejaNum, int userId) {
         Meja meja = getMejaByNomor(MejaNum);
         if (meja != null && meja.getUser() == null) {
             User dummyUser = new User();
@@ -60,13 +60,16 @@ public class MejaRepository {
             dummyUser.setEmail("dummy@email.com");
             dummyUser.setRole("USER");
             meja.setUser(dummyUser);
+            return meja;
         }
     }
 
-    public void delUser(int MejaNum) {
+    public boolean delUser(int MejaNum) {
         Meja meja = getMejaByNomor(MejaNum);
         if (meja != null) {
             meja.setUser(null);
+            return true;
         }
+        return false;
     }
 }
