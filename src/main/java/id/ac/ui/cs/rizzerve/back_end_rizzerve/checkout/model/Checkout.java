@@ -1,32 +1,46 @@
 package id.ac.ui.cs.rizzerve.back_end_rizzerve.checkout.model;
 
-import java.util.ArrayList;
+import lombok.Getter;
+
+import java.time.LocalDateTime;
 import java.util.List;
 
 public class Checkout {
+    private final List<CartItem> items;
+    private final int totalPrice;
+    private final LocalDateTime timestamp;
 
-    private final List<Item> items = new ArrayList<>();
-
-    public void addItem(String name, int quantity, int pricePerItem) {
-        items.add(new Item(name, quantity, pricePerItem));
+    Checkout(List<CartItem> items, int totalPrice, LocalDateTime timestamp) {
+        this.items = items;
+        this.totalPrice = totalPrice;
+        this.timestamp = timestamp;
     }
 
-    public int getTotalPrice() {
-        return items.stream()
-                .mapToInt(item -> item.quantity * item.pricePerItem)
-                .sum();
+    List<CartItem> getItems() {
+        return items;
     }
 
-    // Dummy inner class sebagai placeholder sebelum model Menu tersedia
-    static class Item {
-        String name;
-        int quantity;
-        int pricePerItem;
+    int getTotalPrice() {
+        return totalPrice;
+    }
 
-        Item(String name, int quantity, int pricePerItem) {
-            this.name = name;
-            this.quantity = quantity;
-            this.pricePerItem = pricePerItem;
-        }
+    LocalDateTime getTimestamp() {
+        return timestamp;
     }
 }
+
+// Dummy class CartItem
+@Getter
+class CartItem {
+    private String name;
+    private int quantity;
+    private int price; // harga per item
+
+    public CartItem(String name, int quantity, int price) {
+        this.name = name;
+        this.quantity = quantity;
+        this.price = price;
+    }
+
+}
+
