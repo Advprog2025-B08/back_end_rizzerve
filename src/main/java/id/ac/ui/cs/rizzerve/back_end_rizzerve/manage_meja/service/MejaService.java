@@ -10,4 +10,6 @@ public interface MejaService {
     boolean deleteMeja(String id);
     List<Meja> getAllMeja();
     Meja getMejaById(int id);
+    Meja setUserToMeja(int mejaNum, int userId);
+    boolean removeUserFromMeja(int mejaNum);
 }

@@ -39,4 +39,15 @@ public class MejaServiceImpl implements MejaService {
     public Meja getMejaById(int id) {
         return mejaRepository.getMejaByNomor(id);
     }
+
+    @Override
+    public Meja setUserToMeja(int mejaNum, int userId) {
+        return mejaRepository.setUser(mejaNum, userId);
+    }
+
+    @Override
+    public boolean removeUserFromMeja(int mejaNum) {
+        return mejaRepository.delUser(mejaNum);
+    }
+
 }
