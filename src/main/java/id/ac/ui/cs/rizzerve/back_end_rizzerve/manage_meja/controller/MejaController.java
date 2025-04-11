@@ -70,18 +70,25 @@ public class MejaController {
     }
 
     @PostMapping("/set/{meja_id}")
-    public ResponseEntity<?> setUserToMeja(@PathVariable("meja_id") String mejaId) {
-        String result = mejaService.setUserToMeja(mejaId);
-        if (result.contains("invalid"))
-            return ResponseEntity.badRequest().body(Map.of("errorCode", 8200, "message", result));
+    public ResponseEntity<?> setUserToMeja(@PathVariable("meja_id") String mejaId, @RequestBody String userId) {
+        int id_val = Integer.valueOf(mejaId);
+        int usr_id = Integer.valueOf(userId);
+        Meja result = mejaService.setUserToMeja(id_val, usr_id);
+
+        if (result == null) {
+            return ResponseEntity.badRequest().body(Map.of("errorCode", 8200, "message", "Failed to set user to meja."));
+        }
+
         return ResponseEntity.ok(Map.of("message", result));
     }
 
     @PostMapping("/complete_order/{meja_id}")
     public ResponseEntity<?> removeUserFromMeja(@PathVariable("meja_id") String mejaId) {
-        String result = mejaService.removeUserFromMeja(mejaId);
-        if (result.contains("invalid") || result.contains("empty"))
-            return ResponseEntity.badRequest().body(Map.of("errorCode", result.contains("empty") ? 8204 : 8200, "message", result));
-        return ResponseEntity.ok(Map.of("message", result));
+        int id_val = Integer.valueOf(mejaId);
+        boolean result = mejaService.removeUserFromMeja(id_val);
+        if (result){
+            return ResponseEntity.ok(Map.of("message", result));
+        }
+        return ResponseEntity.badRequest().body(Map.of("errorCode", result ? 8204 : 8200, "message", "Error"));
     }
 }
