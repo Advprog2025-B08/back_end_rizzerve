@@ -7,7 +7,7 @@ import java.util.List;
 public interface MejaService {
     Meja createMeja(int nomor);
     Meja updateMeja(int oldNomor, int newNomor);
-    void deleteMeja(String id);
+    boolean deleteMeja(String id);
     List<Meja> getAllMeja();
     Meja getMejaById(int id);
 }

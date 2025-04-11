@@ -26,8 +26,8 @@ public class MejaServiceImpl implements MejaService {
     }
 
     @Override
-    public void deleteMeja(String id) {
-        mejaRepository.deleteMeja(id);
+    public boolean deleteMeja(String id) {
+        return mejaRepository.deleteMeja(id);
     }
 
     @Override
