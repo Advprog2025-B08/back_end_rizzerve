@@ -7,6 +7,8 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.Setter;
@@ -44,11 +46,14 @@ public class Menu {
     @Column(nullable = false)
     private LocalDateTime updatedAt;
     
+    @PrePersist
     protected void onCreate() {
-        // Implement this method
+        createdAt = LocalDateTime.now();
+        updatedAt = LocalDateTime.now();
     }
 
+    @PreUpdate
     protected void onUpdate() {
-        // Implement this method
+        updatedAt = LocalDateTime.now();
     }
 }
