@@ -12,7 +12,7 @@ public class Meja {
     @Id
     private String id;
 
-    private String nomor;
+    private Integer nomor;
 
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "user_id")
