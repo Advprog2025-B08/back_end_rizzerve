@@ -23,7 +23,7 @@ public class MejaTest {
 
         meja = new Meja();
         meja.setId("meja-123");
-        meja.setNomor("A1");
+        meja.setNomor(1);
         meja.setUser(dummyUser);
         meja.setCart(cart);
     }
@@ -35,7 +35,7 @@ public class MejaTest {
 
     @Test
     void testGetNomorMeja() {
-        assertEquals("A1", meja.getNomor());
+        assertEquals(1, meja.getNomor());
     }
 
     @Test
