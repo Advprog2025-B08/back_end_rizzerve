@@ -16,13 +16,13 @@ public class MejaServiceImpl implements MejaService {
     }
 
     @Override
-    public void createMeja(int meja) {
-        mejaRepository.createMeja(meja);
+    public Meja createMeja(int meja) {
+        return mejaRepository.createMeja(meja);
     }
 
     @Override
-    public void updateMeja(int oldNomor, int newNomor) {
-        mejaRepository.updateMeja(oldNomor, newNomor);
+    public Meja updateMeja(int oldNomor, int newNomor) {
+        return mejaRepository.updateMeja(oldNomor, newNomor);
     }
 
     @Override
