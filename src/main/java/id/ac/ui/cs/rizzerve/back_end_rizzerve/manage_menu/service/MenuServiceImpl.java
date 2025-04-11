@@ -17,36 +17,55 @@ public class MenuServiceImpl implements MenuService {
 
     @Autowired
     public MenuServiceImpl(MenuRepository menuRepository) {
-        // Implement this constructor
+        this.menuRepository = menuRepository;
     }
 
     @Override
     public List<Menu> getAllMenus() {
-        // Implement this method
+        return menuRepository.findAll();
     }
     
     @Override
     public List<Menu> getActiveMenus() {
-        // Implement this method
+        return menuRepository.findAllByIsActiveOrderByDisplayOrderAsc(true);
     }
 
     @Override
     public Menu getMenuById(Long id) {
-        // Implement this method
+        return menuRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Menu not found with id: " + id));
     }
 
-    @Override
+    @Transactional @Override
     public Menu createMenu(MenuDTO menuDTO) {
-        // Implement this method
+        Menu menu = new Menu();
+        menu.setName(menuDTO.getName());
+        menu.setDescription(menuDTO.getDescription());
+        menu.setUrl(menuDTO.getUrl());
+        menu.setIcon(menuDTO.getIcon());
+        menu.setDisplayOrder(menuDTO.getDisplayOrder());
+        menu.setIsActive(menuDTO.getIsActive());
+        
+        return menuRepository.save(menu);
     }
 
-    @Override
+    @Transactional @Override
     public Menu updateMenu(Long id, MenuDTO menuDTO) {
-        // Implement this method
+        Menu existingMenu = getMenuById(id);
+        
+        existingMenu.setName(menuDTO.getName());
+        existingMenu.setDescription(menuDTO.getDescription());
+        existingMenu.setUrl(menuDTO.getUrl());
+        existingMenu.setIcon(menuDTO.getIcon());
+        existingMenu.setDisplayOrder(menuDTO.getDisplayOrder());
+        existingMenu.setIsActive(menuDTO.getIsActive());
+        
+        return menuRepository.save(existingMenu);
     }
 
-    @Override
+    @Transactional @Override
     public void deleteMenu(Long id) {
-        // Implement this method
+        Menu menu = getMenuById(id);
+        menuRepository.delete(menu);
     }
 }
