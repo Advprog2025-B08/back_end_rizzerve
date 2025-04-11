@@ -70,9 +70,9 @@ public class MejaRepositoryTest {
         User dummyUser = new User(1, "dummy@mail.com", "customer");
         mejaRepository.setUser(meja.getNomor(), dummyUser.getId());
 
-        assertNotNull(mejaRepository.getMejaByNomor(12).getActiveUser());
+        assertNotNull(mejaRepository.getMejaByNomor(12).getUser());
 
         mejaRepository.delUser(12);
-        assertNull(mejaRepository.getMejaByNomor(12).getActiveUser());
+        assertNull(mejaRepository.getMejaByNomor(12).getUser());
     }
 }
