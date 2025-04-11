@@ -1,9 +1,5 @@
-package id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_meja;
+package id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_meja.model;
 
-import id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_meja.model.User;
-import id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_meja.model.Menu;
-import id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_meja.model.Cart;
-import id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_meja.model.Meja;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
