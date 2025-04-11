@@ -1,4 +1,4 @@
-package id.ac.ui.cs.rizzerve.back_end_rizzerve.model;
+package id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_pesanan.model;
 
 import lombok.*;
 
@@ -6,7 +6,8 @@ import jakarta.persistence.*;
 
 @Entity
 @Table(name = "cart_item")
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -15,8 +16,8 @@ public class CartItem {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "product_id")
-    private Long productId;
+    @Column(name = "menu_id")
+    private Long menuId;
 
     @Column(nullable = false)
     private int quantity;
@@ -24,10 +25,12 @@ public class CartItem {
     @Column(name = "cart_id")
     private Long cartId;
 
-    // Transient fields for storing objects without persistence
-    @Transient
-    private Product product;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "menu_id", insertable = false, updatable = false)
+    private Menu menu;
 
-    @Transient
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "cart_id", insertable = false, updatable = false)
     private Cart cart;
+
 }

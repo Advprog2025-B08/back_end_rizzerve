@@ -1,79 +1,69 @@
-package id.ac.ui.cs.rizzerve.back_end_rizzerve.service;
+// CartServiceImpl.java
+package id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_pesanan.service;
 
-import id.ac.ui.cs.rizzerve.back_end_rizzerve.command.*;
-import id.ac.ui.cs.rizzerve.back_end_rizzerve.model.Cart;
-import id.ac.ui.cs.rizzerve.back_end_rizzerve.model.Product;
-import id.ac.ui.cs.rizzerve.back_end_rizzerve.model.User;
-import id.ac.ui.cs.rizzerve.back_end_rizzerve.repository.CartRepository;
+import id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_pesanan.command.*;
+import id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_pesanan.model.Cart;
+import id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_pesanan.model.CartItem;
+import id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_pesanan.repository.CartItemRepository;
+import id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_pesanan.repository.CartRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Optional;
+import java.util.ArrayList;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
 public class CartServiceImpl implements CartService {
     private final CartRepository cartRepository;
+    private final CartItemRepository cartItemRepository;
 
     @Override
-    public Cart getOrCreateCartForUser(Long userId) {
-        Optional<Cart> existingCart = cartRepository.findByUserId(userId);
-
-        if (existingCart.isPresent()) {
-            return existingCart.get();
-        } else {
-            Cart newCart = new Cart();
-            User user = new User();
-            user.setId(userId);
-            newCart.setUser(user);
-            return cartRepository.save(newCart);
-        }
-    }
-
-    @Override
-    public void addProductToCart(Long userId, Product product) {
-        Cart cart = getOrCreateCartForUser(userId);
-        CartCommand command = new AddToCartCommand(cartRepository, cart, product);
+    @Transactional
+    public void addMenuToCart(Long userId, Long menuId) {
+        CartCommand command = new AddMenuToCartCommand(cartRepository, cartItemRepository, userId, menuId);
         command.execute();
     }
 
     @Override
-    public void updateCartItemQuantity(Long userId, Long productId, int quantityChange) {
-        Optional<Cart> optionalCart = cartRepository.findByUserId(userId);
-
-        if (optionalCart.isPresent()) {
-            Cart cart = optionalCart.get();
-            CartCommand command = new UpdateCartItemCommand(cartRepository, cart, productId, quantityChange);
-            command.execute();
-        }
+    @Transactional
+    public void updateCartItemQuantity(Long userId, Long menuId, int quantityChange) {
+        CartCommand command = new UpdateCartItemQuantityCommand(cartRepository, cartItemRepository, userId, menuId, quantityChange);
+        command.execute();
     }
 
     @Override
-    public void removeProductFromCart(Long userId, Long productId) {
-        Optional<Cart> optionalCart = cartRepository.findByUserId(userId);
-
-        if (optionalCart.isPresent()) {
-            Cart cart = optionalCart.get();
-            CartCommand command = new RemoveFromCartCommand(cartRepository, cart, productId);
-            command.execute();
-        }
+    @Transactional
+    public void removeMenuFromCart(Long userId, Long menuId) {
+        CartCommand command = new RemoveMenuFromCartCommand(cartRepository, cartItemRepository, userId, menuId);
+        command.execute();
     }
 
     @Override
+    @Transactional
     public void clearCart(Long userId) {
-        Optional<Cart> optionalCart = cartRepository.findByUserId(userId);
-
-        if (optionalCart.isPresent()) {
-            Cart cart = optionalCart.get();
-            CartCommand command = new ClearCartCommand(cartRepository, cart);
-            command.execute();
-        }
+        CartCommand command = new ClearCartCommand(cartRepository, cartItemRepository, userId);
+        command.execute();
     }
 
     @Override
-    public Optional<Cart> getCartByUserId(Long userId) {
-        GetCartCommand command = new GetCartCommand(cartRepository, userId);
-        command.execute();
-        return command.getResult();
+    @Transactional(readOnly = true)
+    public List<CartItem> getCartItems(Long userId) {
+        Cart cart = cartRepository.findByUserId(userId).orElse(null);
+        if (cart == null) {
+            return new ArrayList<>();
+        }
+        return cartItemRepository.findByCartId(cart.getId());
+    }
+
+    @Override
+    @Transactional
+    public Cart getOrCreateCart(Long userId) {
+        return cartRepository.findByUserId(userId)
+                .orElseGet(() -> {
+                    Cart newCart = Cart.builder().userId(userId).build();
+                    return cartRepository.save(newCart);
+                });
     }
 }

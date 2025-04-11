@@ -1,4 +1,4 @@
-package id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_menu.model;
+package id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_pesanan.model;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
