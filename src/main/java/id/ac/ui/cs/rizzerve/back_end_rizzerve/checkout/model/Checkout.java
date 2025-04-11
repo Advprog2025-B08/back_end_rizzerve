@@ -5,6 +5,7 @@ import lombok.Getter;
 import java.time.LocalDateTime;
 import java.util.List;
 
+@Getter
 public class Checkout {
     private final List<CartItem> items;
     private final int totalPrice;
@@ -16,16 +17,5 @@ public class Checkout {
         this.timestamp = timestamp;
     }
 
-    List<CartItem> getItems() {
-        return items;
-    }
-
-    int getTotalPrice() {
-        return totalPrice;
-    }
-
-    LocalDateTime getTimestamp() {
-        return timestamp;
-    }
 }
 

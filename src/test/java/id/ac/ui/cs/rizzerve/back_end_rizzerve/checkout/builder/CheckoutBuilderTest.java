@@ -1,5 +1,7 @@
 package id.ac.ui.cs.rizzerve.back_end_rizzerve.checkout.builder;
 
+import id.ac.ui.cs.rizzerve.back_end_rizzerve.checkout.model.CartItem;
+import id.ac.ui.cs.rizzerve.back_end_rizzerve.checkout.model.Checkout;
 import org.junit.jupiter.api.Test;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -22,7 +24,7 @@ public class CheckoutBuilderTest {
 
         assertEquals(35000, checkout.getTotalPrice());
         assertEquals(2, checkout.getItems().size());
-        assertEquals("Nasi Goreng", checkout.getItems().get(0).getName());
+        assertEquals("Nasi Goreng", checkout.getItems().getFirst().getName());
         assertEquals(now, checkout.getTimestamp());
     }
 

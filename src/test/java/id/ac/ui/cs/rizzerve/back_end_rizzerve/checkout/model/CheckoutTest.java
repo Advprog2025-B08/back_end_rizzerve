@@ -15,7 +15,7 @@ public class CheckoutTest {
         CartItem item2 = new CartItem("Jus Alpukat", 1, 10000);
 
         List<CartItem> items = List.of(item1, item2);
-        int expectedTotal = 2 * 20000 + 1 * 10000;
+        int expectedTotal = 2 * 20000 + 10000;
         LocalDateTime now = LocalDateTime.now();
 
         Checkout checkout = new Checkout(items, expectedTotal, now);
