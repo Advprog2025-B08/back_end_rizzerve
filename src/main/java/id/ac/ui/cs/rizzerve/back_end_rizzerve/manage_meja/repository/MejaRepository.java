@@ -24,20 +24,24 @@ public class MejaRepository {
                 .orElse(null);
     }
 
-    public void createMeja(int Nomor) {
+    public Meja createMeja(int Nomor) {
         if (checkUnique(Nomor)) {
             Meja meja = new Meja();
             meja.setId(UUID.randomUUID().toString());
             meja.setNomor(Nomor);
             MejaData.add(meja);
+            return meja;
         }
+        return null;
     }
 
-    public void updateMeja(int oldNum, int newNum) {
+    public Meja updateMeja(int oldNum, int newNum) {
         Meja meja = getMejaByNomor(oldNum);
         if (meja != null && checkUnique(newNum)) {
             meja.setNomor(newNum);
+            return meja;
         }
+        return null;
     }
 
     public void deleteMeja(String id) {
