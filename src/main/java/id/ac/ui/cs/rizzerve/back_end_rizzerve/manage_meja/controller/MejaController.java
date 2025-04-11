@@ -27,13 +27,15 @@ public class MejaController {
     }
 
     @PostMapping("/update/{meja_id}")
-    public ResponseEntity<?> updateMeja(@PathVariable("meja_id") String mejaId, @RequestBody Meja mejaRequest) {
-        if (mejaId == null || mejaId.isEmpty()) {
+    public ResponseEntity<?> updateMeja(@PathVariable("meja_id") int mejaId, @RequestBody Meja mejaRequest) {
+        if (mejaService.getMejaById(mejaId) == null) {
             return ResponseEntity.badRequest().body(Map.of("errorCode", 8201, "message", "Request param meja_id is not found"));
         }
-        Optional<Meja> updated = mejaService.updateMeja(mejaId, mejaRequest.getNomor());
-        return updated.map(meja -> ResponseEntity.ok(Map.of("message", "Meja updated successfully", "id", meja.getId())))
-                .orElse(ResponseEntity.badRequest().body(Map.of("errorCode", 8200, "message", "Param nomor is invalid")));
+        Meja updated = mejaService.updateMeja(mejaId, mejaRequest.getNomor());
+        if (updated == null){
+            return ResponseEntity.badRequest().body(Map.of("errorCode", 8200, "message", "Param nomor is invalid"));
+        }
+        return ResponseEntity.ok(Map.of("message", "Meja updated successfully", "id", updated.getId()));
     }
 
     @DeleteMapping("/delete/{meja_id}")
