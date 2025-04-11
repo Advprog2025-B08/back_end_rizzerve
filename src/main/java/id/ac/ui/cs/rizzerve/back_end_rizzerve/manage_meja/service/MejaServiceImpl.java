@@ -16,12 +16,12 @@ public class MejaServiceImpl implements MejaService {
     }
 
     @Override
-    public void createMeja(Meja meja) {
+    public void createMeja(int meja) {
         mejaRepository.createMeja(meja);
     }
 
     @Override
-    public void updateMeja(String oldNomor, String newNomor) {
+    public void updateMeja(int oldNomor, int newNomor) {
         mejaRepository.updateMeja(oldNomor, newNomor);
     }
 
@@ -32,11 +32,11 @@ public class MejaServiceImpl implements MejaService {
 
     @Override
     public List<Meja> getAllMeja() {
-        return mejaRepository.findAll();
+        return mejaRepository.getAllMejas();
     }
 
     @Override
-    public Meja getMejaById(String id) {
-        return mejaRepository.findById(id);
+    public Meja getMejaById(int id) {
+        return mejaRepository.getMejaByNomor(id);
     }
 }
