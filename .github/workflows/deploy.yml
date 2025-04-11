@@ -41,4 +41,4 @@ jobs:
             docker load < ~/rizzerve-app.tar
             docker stop rizzerve || true
             docker rm rizzerve || true
-            docker run -d --name rizzerve -p 80:8080 rizzerve-app
+            docker run -d --name rizzerve -p 80:8080 --env-file /home/ec2-user/.env rizzerve-app
