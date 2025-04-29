@@ -28,7 +28,7 @@ public class MejaController {
 
     @PostMapping("/update/{meja_id}")
     public ResponseEntity<?> updateMeja(@PathVariable("meja_id") int mejaId, @RequestBody Meja mejaRequest) {
-        if (mejaService.getMejaById(mejaId) == null) {
+        if (mejaService.getMejaByNomor(mejaId) == null) {
             return ResponseEntity.badRequest().body(Map.of("errorCode", 8201, "message", "Request param meja_id is not found"));
         }
         Meja updated = mejaService.updateMeja(mejaId, mejaRequest.getNomor());
@@ -39,8 +39,8 @@ public class MejaController {
     }
 
     @DeleteMapping("/delete/{meja_id}")
-    public ResponseEntity<?> deleteMeja(@PathVariable("meja_id") String mejaId) {
-        if (mejaId == null || mejaId.isEmpty()) {
+    public ResponseEntity<?> deleteMeja(@PathVariable("meja_id") int mejaId) {
+        if (mejaService.getMejaByNomor(mejaId) == null) {
             return ResponseEntity.badRequest().body(Map.of("errorCode", 8202, "message", "Request param meja_id is not found"));
         }
         boolean success = mejaService.deleteMeja(mejaId);
@@ -60,9 +60,8 @@ public class MejaController {
     }
 
     @GetMapping("/read/{meja_id}")
-    public ResponseEntity<?> getMejaById(@PathVariable("meja_id") String mejaId) {
-        int id_val = Integer.valueOf(mejaId);
-        Meja meja = mejaService.getMejaById(id_val);
+    public ResponseEntity<?> getMejaByNomor(@PathVariable("meja_id") int nomor) {
+        Meja meja = mejaService.getMejaByNomor(nomor);
         if (meja == null) {
             ResponseEntity.badRequest().body(Map.of("errorCode", 8202, "message", "Request param meja_id is not found"));
         }

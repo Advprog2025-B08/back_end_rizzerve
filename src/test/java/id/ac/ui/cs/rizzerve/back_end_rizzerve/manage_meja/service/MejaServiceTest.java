@@ -35,8 +35,8 @@ public class MejaServiceTest {
 
     @Test
     void testDeleteMeja() {
-        mejaService.deleteMeja("1");
-        verify(mejaRepository, times(1)).deleteMeja("1");
+        mejaService.deleteMeja(1);
+        verify(mejaRepository, times(1)).deleteMeja(1);
     }
 
     @Test
@@ -53,12 +53,12 @@ public class MejaServiceTest {
     }
 
     @Test
-    void testGetMejaById() {
+    void testgetMejaByNomor() {
         Meja meja = new Meja();
         meja.setNomor(1);
         when(mejaRepository.getMejaByNomor(1)).thenReturn(meja);
 
-        Meja result = mejaService.getMejaById(1);
+        Meja result = mejaService.getMejaByNomor(1);
         assertEquals(1, result.getNomor());
     }
 }

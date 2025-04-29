@@ -26,7 +26,7 @@ public class MejaServiceImpl implements MejaService {
     }
 
     @Override
-    public boolean deleteMeja(String id) {
+    public boolean deleteMeja(int id) {
         return mejaRepository.deleteMeja(id);
     }
 
@@ -36,8 +36,8 @@ public class MejaServiceImpl implements MejaService {
     }
 
     @Override
-    public Meja getMejaById(int id) {
-        return mejaRepository.getMejaByNomor(id);
+    public Meja getMejaByNomor(int nomor) {
+        return mejaRepository.getMejaByNomor(nomor);
     }
 
     @Override

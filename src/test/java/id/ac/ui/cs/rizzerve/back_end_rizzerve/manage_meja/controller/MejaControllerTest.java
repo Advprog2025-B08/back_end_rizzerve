@@ -40,7 +40,10 @@ public class MejaControllerTest {
     void testUpdateMeja() {
         Meja meja = new Meja();
         meja.setNomor(1);
-        when(mejaService.updateMeja(1, 2)).thenReturn(Optional.of(meja));
+
+        // Create an actual Optional instance
+        Optional<Meja> optionalMeja = Optional.of(meja);
+        when(mejaService.updateMeja(1, 2)).thenReturn(optionalMeja);
 
         ResponseEntity<?> response = mejaController.updateMeja(1, meja);
         assertEquals(200, response.getStatusCodeValue());
@@ -57,11 +60,11 @@ public class MejaControllerTest {
 
     @Test
     void testGetAllMeja() {
-        Meja meja = new Meja();
-        meja.setNomor(1);
+        Meja meja1 = new Meja();
+        meja1.setNomor(1);
         Meja meja2 = new Meja();
-        meja.setNomor(2);
-        List<Meja> mejaList = Arrays.asList(meja, meja2);
+        meja2.setNomor(2);
+        List<Meja> mejaList = Arrays.asList(meja1, meja2);
         when(mejaService.getAllMeja()).thenReturn(mejaList);
 
         ResponseEntity<?> response = mejaController.getAllMeja();
@@ -69,26 +72,29 @@ public class MejaControllerTest {
     }
 
     @Test
-    void testGetMejaById() {
+    void testgetMejaByNomor() {
         Meja meja = new Meja();
         meja.setNomor(1);
-        when(mejaService.getMejaById(1)).thenReturn(Optional.of(meja));
 
-        ResponseEntity<?> response = mejaController.getMejaById(1);
+        // Create an actual Optional instance
+        Optional<Meja> optionalMeja = Optional.of(meja);
+        when(mejaService.getMejaByNomor(1)).thenReturn(optionalMeja);
+
+        ResponseEntity<?> response = mejaController.getMejaByNomor(1);
         assertEquals(200, response.getStatusCodeValue());
     }
 
     @Test
     void testSetUserToMeja() {
-        when(mejaService.setUserToMeja("123")).thenReturn("User successfully connected to meja 1!");
+        when(mejaService.setUserToMeja(1,123)).thenReturn("User successfully connected to meja 1!");
 
-        ResponseEntity<?> response = mejaController.setUserToMeja("123");
+        ResponseEntity<?> response = mejaController.setUserToMeja("1","123");
         assertEquals(200, response.getStatusCodeValue());
     }
 
     @Test
     void testRemoveUserFromMeja() {
-        when(mejaService.removeUserFromMeja("123")).thenReturn("User successfully checked out of meja 1!");
+        when(mejaService.removeUserFromMeja(123)).thenReturn("User successfully checked out of meja 1!");
 
         ResponseEntity<?> response = mejaController.removeUserFromMeja("123");
         assertEquals(200, response.getStatusCodeValue());

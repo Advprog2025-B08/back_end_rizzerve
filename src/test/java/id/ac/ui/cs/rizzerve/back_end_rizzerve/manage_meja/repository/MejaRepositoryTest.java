@@ -47,7 +47,7 @@ public class MejaRepositoryTest {
     void testDeleteMeja() {
         mejaRepository.createMeja(4);
         Meja meja = mejaRepository.getMejaByNomor(4);
-        mejaRepository.deleteMeja(meja.getId());
+        mejaRepository.deleteMeja(meja.getNomor());
         assertNull(mejaRepository.getMejaByNomor(4));
     }
 

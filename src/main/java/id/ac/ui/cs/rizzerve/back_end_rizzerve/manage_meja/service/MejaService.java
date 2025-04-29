@@ -7,9 +7,9 @@ import java.util.List;
 public interface MejaService {
     Meja createMeja(int nomor);
     Meja updateMeja(int oldNomor, int newNomor);
-    boolean deleteMeja(String id);
+    boolean deleteMeja(int id);
     List<Meja> getAllMeja();
-    Meja getMejaById(int id);
+    Meja getMejaByNomor(int nomor);
     Meja setUserToMeja(int mejaNum, int userId);
     boolean removeUserFromMeja(int mejaNum);
 }
