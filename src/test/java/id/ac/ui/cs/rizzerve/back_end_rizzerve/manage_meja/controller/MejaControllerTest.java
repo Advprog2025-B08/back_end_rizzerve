@@ -9,7 +9,6 @@ import org.springframework.http.ResponseEntity;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -29,6 +28,8 @@ public class MejaControllerTest {
     void testCreateMeja() {
         Meja meja = new Meja();
         meja.setNomor(1);
+        meja.setId("test-id-1");
+
         doReturn(meja).when(mejaService).createMeja(1);
 
         ResponseEntity<?> response = mejaController.createMeja(meja);
@@ -40,10 +41,15 @@ public class MejaControllerTest {
     @Test
     void testUpdateMeja() {
         Meja meja = new Meja();
-        meja.setNomor(1);
+        meja.setNomor(2);
+        meja.setId("test-id-1");
 
-        Optional<Meja> optionalMeja = Optional.of(meja);
-        doReturn(optionalMeja).when(mejaService).updateMeja(1, 2);
+        Meja existingMeja = new Meja();
+        existingMeja.setNomor(1);
+        existingMeja.setId("test-id-1");
+        doReturn(existingMeja).when(mejaService).getMejaByNomor(1);
+
+        doReturn(meja).when(mejaService).updateMeja(1, 2);
 
         ResponseEntity<?> response = mejaController.updateMeja(1, meja);
         assertEquals(200, response.getStatusCode().value());
@@ -53,52 +59,70 @@ public class MejaControllerTest {
 
     @Test
     void testDeleteMeja() {
+        Meja existingMeja = new Meja();
+        existingMeja.setNomor(2);
+        existingMeja.setId("test-id-2");
+        doReturn(existingMeja).when(mejaService).getMejaByNomor(2);
+
         doReturn(true).when(mejaService).deleteMeja(2);
 
         ResponseEntity<?> response = mejaController.deleteMeja(2);
         assertEquals(200, response.getStatusCode().value());
+        assertNotNull(response.getBody());
+        assertTrue(response.getBody().toString().contains("Meja deleted successfully"));
     }
 
     @Test
     void testGetAllMeja() {
         Meja meja1 = new Meja();
         meja1.setNomor(1);
+        meja1.setId("test-id-1");
+
         Meja meja2 = new Meja();
         meja2.setNomor(2);
+        meja2.setId("test-id-2");
+
         List<Meja> mejaList = Arrays.asList(meja1, meja2);
+
         doReturn(mejaList).when(mejaService).getAllMeja();
 
         ResponseEntity<?> response = mejaController.getAllMeja();
         assertEquals(200, response.getStatusCode().value());
+        assertNotNull(response.getBody());
     }
 
     @Test
-    void testgetMejaByNomor() {
+    void testGetMejaByNomor() {
         Meja meja = new Meja();
         meja.setNomor(1);
+        meja.setId("test-id-1");
 
-        Optional<Meja> optionalMeja = Optional.of(meja);
-        doReturn(optionalMeja).when(mejaService).getMejaByNomor(1);
+        doReturn(meja).when(mejaService).getMejaByNomor(1);
 
         ResponseEntity<?> response = mejaController.getMejaByNomor(1);
         assertEquals(200, response.getStatusCode().value());
+        assertNotNull(response.getBody());
     }
 
     @Test
     void testSetUserToMeja() {
-        String successMessage = "User successfully connected to meja 1!";
-        doReturn(successMessage).when(mejaService).setUserToMeja(1, 123);
+        Meja resultMeja = new Meja();
+        resultMeja.setNomor(1);
+        resultMeja.setId("test-id-1");
+
+        doReturn(resultMeja).when(mejaService).setUserToMeja(1, 123);
 
         ResponseEntity<?> response = mejaController.setUserToMeja("1", "123");
         assertEquals(200, response.getStatusCode().value());
+        assertNotNull(response.getBody());
     }
 
     @Test
     void testRemoveUserFromMeja() {
-        String successMessage = "User successfully checked out of meja 1!";
-        doReturn(successMessage).when(mejaService).removeUserFromMeja(123);
+        doReturn(true).when(mejaService).removeUserFromMeja(123);
 
         ResponseEntity<?> response = mejaController.removeUserFromMeja("123");
         assertEquals(200, response.getStatusCode().value());
+        assertNotNull(response.getBody());
     }
 }
