@@ -62,6 +62,7 @@ public class MejaRepository {
             meja.setUser(dummyUser);
             return meja;
         }
+        return null;
     }
 
     public boolean delUser(int MejaNum) {
