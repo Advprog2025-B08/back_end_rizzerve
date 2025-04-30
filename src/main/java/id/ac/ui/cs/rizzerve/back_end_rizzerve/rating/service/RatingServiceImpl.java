@@ -5,10 +5,12 @@ import id.ac.ui.cs.rizzerve.back_end_rizzerve.rating.model.Rating;
 import id.ac.ui.cs.rizzerve.back_end_rizzerve.rating.repository.RatingRepository;
 import id.ac.ui.cs.rizzerve.back_end_rizzerve.rating.service.strategy.AverageRatingStrategy;
 import id.ac.ui.cs.rizzerve.back_end_rizzerve.rating.service.strategy.SimpleAverageStrategy;
+import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
+@Service
 public class RatingServiceImpl implements RatingService {
 
     private RatingRepository ratingRepository;
