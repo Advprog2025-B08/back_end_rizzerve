@@ -31,7 +31,7 @@ class RatingControllerTest {
     @Test
     void testCreateRating_shouldReturnOk() throws Exception {
         Rating rating = new Rating(1L, new User(1L, "TestUser"), new Product(1L, "Burger"), 4);
-        mockMvc.perform(post("/api/ratings")
+        mockMvc.perform(post("/ratings")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(rating)))
                 .andExpect(status().isOk());
@@ -40,7 +40,7 @@ class RatingControllerTest {
     @Test
     void testGetAverageRating_shouldReturnDouble() throws Exception {
         Mockito.when(ratingService.getAverageRatingByProductId(1L)).thenReturn(4.0);
-        mockMvc.perform(get("/api/ratings/average/1"))
+        mockMvc.perform(get("/ratings/average/1"))
                 .andExpect(status().isOk())
                 .andExpect(content().string("4.0"));
     }
