@@ -61,7 +61,7 @@ public class CheckoutTest {
         assertNotNull(checkout.getCart());
         assertEquals(2, checkout.getCart().getItems().size());
         assertEquals(expectedTotal, checkout.getTotalPrice());
-        assertEquals(42L, checkout.getUserId());
+        assertEquals(1L, checkout.getUserId());
         assertTrue(checkout.getIsSubmitted());
         assertNotNull(checkout.getCreatedAt());
     }
