@@ -1,6 +1,5 @@
 package id.ac.ui.cs.rizzerve.back_end_rizzerve.checkout.builder;
 
-import id.ac.ui.cs.rizzerve.back_end_rizzerve.checkout.model.CartItem;
 import id.ac.ui.cs.rizzerve.back_end_rizzerve.checkout.model.Checkout;
 import org.junit.jupiter.api.Test;
 import java.time.LocalDateTime;
