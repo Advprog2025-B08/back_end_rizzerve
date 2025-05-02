@@ -31,7 +31,7 @@ public class CheckoutServiceImpl implements CheckoutService {
     private int calculateTotalPrice(Cart cart) {
         // Menghitung total harga berdasarkan cart yang ada
         return cart.getItems().stream()
-                .mapToInt(item -> item.getQuantity() * item.getPrice())
+                .mapToInt(CartItem::getQuantity) // Belum hitung total harga karena harus update model cartitem
                 .sum();
     }
 
