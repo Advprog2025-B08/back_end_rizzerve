@@ -1,7 +1,6 @@
 package id.ac.ui.cs.rizzerve.back_end_rizzerve.checkout.model;
 
 import org.junit.jupiter.api.Test;
-
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -10,31 +9,58 @@ import static org.junit.jupiter.api.Assertions.*;
 public class CheckoutTest {
 
     @Test
-    void testCheckoutStoresItemsTotalAndTimestampCorrectly() {
-        CartItem item1 = new CartItem("Ayam Bakar", 2, 20000);
-        CartItem item2 = new CartItem("Jus Alpukat", 1, 10000);
+    public void testCreateCheckoutWithValidData() {
+        // Arrange
+        Long userId = 1L;
+        CartItem item1 = CartItem.builder()
+                .id(1L)
+                .quantity(2)
+                .menuItem(MenuItem.builder()
+                        .id(10L)
+                        .name("Nasi Goreng")
+                        .price(15000)
+                        .build())
+                .build();
 
-        List<CartItem> items = List.of(item1, item2);
-        int expectedTotal = 2 * 20000 + 10000;
-        LocalDateTime now = LocalDateTime.now();
+        CartItem item2 = CartItem.builder()
+                .id(2L)
+                .quantity(1)
+                .menuItem(MenuItem.builder()
+                        .id(11L)
+                        .name("Teh Manis")
+                        .price(5000)
+                        .build())
+                .build();
 
-        Checkout checkout = new Checkout(items, expectedTotal, now);
+        // Act
+        Checkout checkout = Checkout.builder()
+                .userId(userId)
+                .items(List.of(item1, item2))
+                .totalPrice(2 * 15000 + 1 * 5000)
+                .isSubmitted(true)
+                .createdAt(LocalDateTime.now())
+                .build();
 
-        assertEquals(items, checkout.getItems());
-        assertEquals(expectedTotal, checkout.getTotalPrice());
-        assertEquals(now, checkout.getTimestamp());
+        // Assert
+        assertEquals(userId, checkout.getUserId());
+        assertEquals(2, checkout.getItems().size());
+        assertEquals(35000, checkout.getTotalPrice());
+        assertTrue(checkout.getIsSubmitted());
+        assertNotNull(checkout.getCreatedAt());
     }
 
     @Test
-    void testEmptyItemListAllowed() {
-        List<CartItem> items = List.of();
-        int expectedTotal = 0;
-        LocalDateTime now = LocalDateTime.now();
+    public void testCheckoutWithEmptyItemsShouldBeInvalid() {
+        Checkout checkout = Checkout.builder()
+                .userId(1L)
+                .items(List.of())
+                .totalPrice(0)
+                .isSubmitted(false)
+                .createdAt(LocalDateTime.now())
+                .build();
 
-        Checkout checkout = new Checkout(items, expectedTotal, now);
-
-        assertTrue(checkout.getItems().isEmpty());
+        assertEquals(0, checkout.getItems().size());
         assertEquals(0, checkout.getTotalPrice());
-        assertEquals(now, checkout.getTimestamp());
+        assertFalse(checkout.getIsSubmitted());
     }
 }
