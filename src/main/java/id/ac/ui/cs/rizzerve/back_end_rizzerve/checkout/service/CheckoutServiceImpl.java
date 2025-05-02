@@ -41,7 +41,7 @@ public class CheckoutServiceImpl implements CheckoutService {
                 .userId(cart.getUserId())
                 .cart(cart)
                 .totalPrice(totalPrice)
-                .isSubmitted(false)
+                .isSubmitted(true)
                 .createdAt(LocalDateTime.now())
                 .build();
     }
