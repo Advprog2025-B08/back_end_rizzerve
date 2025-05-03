@@ -1,5 +1,6 @@
 package id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_menu.controller;
 
+import java.util.Collections;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -17,12 +18,20 @@ import static org.mockito.Mockito.when;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+import id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_menu.dto.JwtResponse;
 import id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_menu.dto.LoginRequest;
 import id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_menu.dto.RegisterRequest;
-import id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_menu.model.User;
 import id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_menu.repository.UserRepository;
+import id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_menu.security.JwtUtil;
 
 @ExtendWith(MockitoExtension.class)
 public class AuthControllerTest {
@@ -32,13 +41,23 @@ public class AuthControllerTest {
 
     @Mock
     private PasswordEncoder passwordEncoder;
+    
+    @Mock
+    private AuthenticationManager authenticationManager;
+    
+    @Mock
+    private JwtUtil jwtUtil;
+    
+    @Mock
+    private Authentication authentication;
 
     @InjectMocks
     private AuthController authController;
 
     private RegisterRequest registerRequest;
     private LoginRequest loginRequest;
-    private User user;
+    private id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_menu.model.User userModel;
+    private UserDetails userDetails;
 
     @BeforeEach
     void setUp() {
@@ -51,18 +70,21 @@ public class AuthControllerTest {
         loginRequest.setUsername("testuser");
         loginRequest.setPassword("password");
 
-        user = new User();
-        user.setId(1L);
-        user.setUsername("testuser");
-        user.setPassword("encodedPassword");
-        user.setRole("ADMIN");
+        userModel = new id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_menu.model.User();
+        userModel.setId(1L);
+        userModel.setUsername("testuser");
+        userModel.setPassword("encodedPassword");
+        userModel.setRole("ADMIN");
+        
+        userDetails = new User("testuser", "encodedPassword", 
+                Collections.singletonList(new SimpleGrantedAuthority("ROLE_ADMIN")));
     }
 
     @Test
     void registerUser_WhenUsernameIsAvailable_ShouldRegisterUser() {
         when(userRepository.findByUsername(anyString())).thenReturn(Optional.empty());
         when(passwordEncoder.encode(anyString())).thenReturn("encodedPassword");
-        when(userRepository.save(any(User.class))).thenReturn(user);
+        when(userRepository.save(any(id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_menu.model.User.class))).thenReturn(userModel);
 
         ResponseEntity<?> response = authController.registerUser(registerRequest);
 
@@ -70,12 +92,12 @@ public class AuthControllerTest {
         assertEquals("User registered successfully", response.getBody());
         verify(userRepository, times(1)).findByUsername("testuser");
         verify(passwordEncoder, times(1)).encode("password");
-        verify(userRepository, times(1)).save(any(User.class));
+        verify(userRepository, times(1)).save(any(id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_menu.model.User.class));
     }
 
     @Test
     void registerUser_WhenUsernameIsTaken_ShouldReturnBadRequest() {
-        when(userRepository.findByUsername(anyString())).thenReturn(Optional.of(user));
+        when(userRepository.findByUsername(anyString())).thenReturn(Optional.of(userModel));
 
         ResponseEntity<?> response = authController.registerUser(registerRequest);
 
@@ -83,44 +105,44 @@ public class AuthControllerTest {
         assertEquals("Username is already taken", response.getBody());
         verify(userRepository, times(1)).findByUsername("testuser");
         verify(passwordEncoder, never()).encode(anyString());
-        verify(userRepository, never()).save(any(User.class));
+        verify(userRepository, never()).save(any(id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_menu.model.User.class));
     }
 
     @Test
     void loginUser_WhenCredentialsAreValid_ShouldLoginSuccessfully() {
-        when(userRepository.findByUsername(anyString())).thenReturn(Optional.of(user));
-        when(passwordEncoder.matches(anyString(), anyString())).thenReturn(true);
+        // Mock successful authentication
+        when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class)))
+                .thenReturn(authentication);
+        when(authentication.getPrincipal()).thenReturn(userDetails);
+        when(jwtUtil.generateToken(any(UserDetails.class))).thenReturn("valid.jwt.token");
+        when(userRepository.findByUsername("testuser")).thenReturn(Optional.of(userModel));
 
         ResponseEntity<?> response = authController.loginUser(loginRequest);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals("Login successful", response.getBody());
-        verify(userRepository, times(1)).findByUsername("testuser");
-        verify(passwordEncoder, times(1)).matches("password", "encodedPassword");
+        JwtResponse jwtResponse = (JwtResponse) response.getBody();
+        assertEquals("valid.jwt.token", jwtResponse.getToken());
+        assertEquals("testuser", jwtResponse.getUsername());
+        assertEquals("ADMIN", jwtResponse.getRole());
+        
+        verify(authenticationManager, times(1))
+                .authenticate(any(UsernamePasswordAuthenticationToken.class));
+        verify(jwtUtil, times(1)).generateToken(any(UserDetails.class));
     }
 
     @Test
-    void loginUser_WhenUserNotFound_ShouldReturnUnauthorized() {
-        when(userRepository.findByUsername(anyString())).thenReturn(Optional.empty());
+    void loginUser_WhenBadCredentials_ShouldReturnUnauthorized() {
+        // Mock unsuccessful authentication
+        when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class)))
+                .thenThrow(new BadCredentialsException("Invalid credentials"));
 
         ResponseEntity<?> response = authController.loginUser(loginRequest);
 
         assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
         assertEquals("Invalid credentials", response.getBody());
-        verify(userRepository, times(1)).findByUsername("testuser");
-        verify(passwordEncoder, never()).matches(anyString(), anyString());
-    }
-
-    @Test
-    void loginUser_WhenPasswordIsInvalid_ShouldReturnUnauthorized() {
-        when(userRepository.findByUsername(anyString())).thenReturn(Optional.of(user));
-        when(passwordEncoder.matches(anyString(), anyString())).thenReturn(false);
-
-        ResponseEntity<?> response = authController.loginUser(loginRequest);
-
-        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
-        assertEquals("Invalid credentials", response.getBody());
-        verify(userRepository, times(1)).findByUsername("testuser");
-        verify(passwordEncoder, times(1)).matches("password", "encodedPassword");
+        
+        verify(authenticationManager, times(1))
+                .authenticate(any(UsernamePasswordAuthenticationToken.class));
+        verify(jwtUtil, never()).generateToken(any(UserDetails.class));
     }
 }

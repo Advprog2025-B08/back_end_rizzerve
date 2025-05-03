@@ -38,6 +38,3 @@ out/
 
 # .gitignore
 .env
-*.env
-.env.*
-!.env.example
