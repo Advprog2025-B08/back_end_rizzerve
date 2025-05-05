@@ -1,9 +1,8 @@
 package id.ac.ui.cs.rizzerve.back_end_rizzerve.rating.repository;
 
-import id.ac.ui.cs.rizzerve.back_end_rizzerve.rating.model.Product;
+import id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_menu.model.Menu;
+import id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_menu.model.User;
 import id.ac.ui.cs.rizzerve.back_end_rizzerve.rating.model.Rating;
-import id.ac.ui.cs.rizzerve.back_end_rizzerve.rating.model.User;
-import id.ac.ui.cs.rizzerve.back_end_rizzerve.rating.repository.RatingRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -25,10 +24,21 @@ class RatingRepositoryTest {
 
     @Test
     void testSaveAndFindById() {
+        // Gunakan model User dan Menu yang sebenarnya
+        User user = new User();
+        user.setId(1L);
+        user.setUsername("Daniel");
+        user.setPassword("pass");
+        user.setRole("CUSTOMER");
+
+        Menu menu = new Menu();
+        menu.setId(1L);
+        menu.setName("Nasi Goreng");
+
         Rating rating = Rating.builder()
                 .id(1L)
-                .user(new User(1L, "Daniel"))
-                .product(new Product(1L, "Nasi Goreng"))
+                .user(user)
+                .menu(menu)
                 .ratingValue(4)
                 .build();
 
@@ -42,10 +52,20 @@ class RatingRepositoryTest {
 
     @Test
     void testUpdateRating() {
+        User user = new User();
+        user.setId(1L);
+        user.setUsername("Daniel");
+        user.setPassword("pass");
+        user.setRole("CUSTOMER");
+
+        Menu menu = new Menu();
+        menu.setId(1L);
+        menu.setName("Nasi Goreng");
+
         Rating rating = Rating.builder()
                 .id(1L)
-                .user(new User(1L, "Daniel"))
-                .product(new Product(1L, "Nasi Goreng"))
+                .user(user)
+                .menu(menu)
                 .ratingValue(3)
                 .build();
 
@@ -53,8 +73,8 @@ class RatingRepositoryTest {
 
         Rating updatedRating = Rating.builder()
                 .id(1L)
-                .user(new User(1L, "Daniel"))
-                .product(new Product(1L, "Nasi Goreng"))
+                .user(user)
+                .menu(menu)
                 .ratingValue(5)
                 .build();
 
@@ -68,10 +88,20 @@ class RatingRepositoryTest {
 
     @Test
     void testDeleteRating() {
+        User user = new User();
+        user.setId(1L);
+        user.setUsername("Daniel");
+        user.setPassword("pass");
+        user.setRole("CUSTOMER");
+
+        Menu menu = new Menu();
+        menu.setId(1L);
+        menu.setName("Nasi Goreng");
+
         Rating rating = Rating.builder()
                 .id(1L)
-                .user(new User(1L, "Daniel"))
-                .product(new Product(1L, "Nasi Goreng"))
+                .user(user)
+                .menu(menu)
                 .ratingValue(4)
                 .build();
 
@@ -80,27 +110,63 @@ class RatingRepositoryTest {
 
         Optional<Rating> found = ratingRepository.findById(1L);
 
-        assertThat(found).isNotPresent();
+        assertThat(found).isEmpty();
     }
 
     @Test
-    void testFindAllByProductId_ShouldReturnCorrectRatings() {
-        Product product1 = new Product(1L, "Nasi Goreng");
-        Product product2 = new Product(2L, "Nasi Padang");
+    void testFindAllByMenuId_ShouldReturnCorrectRatings() {
+        Menu menu1 = new Menu();
+        menu1.setId(1L);
+        menu1.setName("Nasi Goreng");
 
-        User user1 = new User(1L, "Daniel");
-        User user2 = new User(2L, "Angger");
-        User user3 = new User(3L, "Dewandaru");
+        Menu menu2 = new Menu();
+        menu2.setId(2L);
+        menu2.setName("Nasi Padang");
 
-        Rating rating1 = new Rating(1L, user1, product1, 4);
-        Rating rating2 = new Rating(2L, user2, product1, 5);
-        Rating rating3 = new Rating(3L, user3, product2, 3);
+        User user1 = new User();
+        user1.setId(1L);
+        user1.setUsername("Daniel");
+        user1.setPassword("pass");
+        user1.setRole("CUSTOMER");
+
+        User user2 = new User();
+        user2.setId(2L);
+        user2.setUsername("Angger");
+        user2.setPassword("pass");
+        user2.setRole("CUSTOMER");
+
+        User user3 = new User();
+        user3.setId(3L);
+        user3.setUsername("Dewandaru");
+        user3.setPassword("pass");
+        user3.setRole("CUSTOMER");
+
+        Rating rating1 = Rating.builder()
+                .id(1L)
+                .user(user1)
+                .menu(menu1)
+                .ratingValue(4)
+                .build();
+
+        Rating rating2 = Rating.builder()
+                .id(2L)
+                .user(user2)
+                .menu(menu1)
+                .ratingValue(5)
+                .build();
+
+        Rating rating3 = Rating.builder()
+                .id(3L)
+                .user(user3)
+                .menu(menu2)
+                .ratingValue(3)
+                .build();
 
         ratingRepository.save(rating1);
         ratingRepository.save(rating2);
         ratingRepository.save(rating3);
 
-        List<Rating> result = ratingRepository.findAllByProductId(1L);
+        List<Rating> result = ratingRepository.findAllByMenuId(1L);
 
         assertEquals(2, result.size());
         assertTrue(result.contains(rating1));
@@ -108,8 +174,8 @@ class RatingRepositoryTest {
     }
 
     @Test
-    void testFindAllByProductId_ShouldReturnEmptyList_WhenNoRatingFound() {
-        List<Rating> result = ratingRepository.findAllByProductId(99L);
+    void testFindAllByMenuId_ShouldReturnEmptyList_WhenNoRatingFound() {
+        List<Rating> result = ratingRepository.findAllByMenuId(99L);
 
         assertTrue(result.isEmpty());
     }
