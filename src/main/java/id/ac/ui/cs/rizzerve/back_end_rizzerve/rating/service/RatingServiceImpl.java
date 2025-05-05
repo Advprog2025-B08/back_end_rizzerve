@@ -1,10 +1,10 @@
 package id.ac.ui.cs.rizzerve.back_end_rizzerve.rating.service;
 
-import id.ac.ui.cs.rizzerve.back_end_rizzerve.rating.service.helper.RatingCalculatorHelper;
 import id.ac.ui.cs.rizzerve.back_end_rizzerve.rating.model.Rating;
 import id.ac.ui.cs.rizzerve.back_end_rizzerve.rating.repository.RatingRepository;
 import id.ac.ui.cs.rizzerve.back_end_rizzerve.rating.service.strategy.AverageRatingStrategy;
 import id.ac.ui.cs.rizzerve.back_end_rizzerve.rating.service.strategy.SimpleAverageStrategy;
+import id.ac.ui.cs.rizzerve.back_end_rizzerve.rating.service.helper.RatingCalculatorHelper;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -39,8 +39,8 @@ public class RatingServiceImpl implements RatingService {
     }
 
     @Override
-    public double getAverageRatingByProductId(Long productId) {
-        List<Rating> ratings = ratingRepository.findAllByProductId(productId);
+    public double getAverageRatingByMenuId(Long menuId) {
+        List<Rating> ratings = ratingRepository.findAllByMenuId(menuId);
         List<Integer> values = ratings.stream()
                 .map(Rating::getRatingValue)
                 .collect(Collectors.toList());
