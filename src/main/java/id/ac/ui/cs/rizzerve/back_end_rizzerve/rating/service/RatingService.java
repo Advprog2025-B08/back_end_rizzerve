@@ -6,5 +6,5 @@ public interface RatingService {
     void createRating(Rating rating);
     Rating updateRating(Rating rating);
     void deleteRating(Long id);
-    double getAverageRatingByMenuId(Long menuId); // Ubah nama method
+    double getAverageRatingByMenuId(Long menuId);
 }

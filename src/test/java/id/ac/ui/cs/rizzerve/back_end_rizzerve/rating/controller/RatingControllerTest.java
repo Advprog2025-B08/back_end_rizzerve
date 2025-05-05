@@ -30,19 +30,16 @@ class RatingControllerTest {
 
     @Test
     void testCreateRating_shouldReturnOk() throws Exception {
-        // Buat User tanpa builder
         User user = new User();
         user.setId(1L);
         user.setUsername("TestUser");
         user.setPassword("pass");
         user.setRole("CUSTOMER");
 
-        // Buat Menu tanpa builder
         Menu menu = new Menu();
         menu.setId(1L);
         menu.setName("Burger");
 
-        // Buat Rating dengan builder
         Rating rating = Rating.builder()
                 .id(1L)
                 .user(user)

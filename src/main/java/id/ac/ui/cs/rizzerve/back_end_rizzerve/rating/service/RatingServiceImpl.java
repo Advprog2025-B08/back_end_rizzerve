@@ -19,7 +19,7 @@ public class RatingServiceImpl implements RatingService {
 
     public RatingServiceImpl(RatingRepository ratingRepository) {
         this.ratingRepository = ratingRepository;
-        this.averageRatingStrategy = new SimpleAverageStrategy(); // default strategy
+        this.averageRatingStrategy = new SimpleAverageStrategy();
     }
 
     @Override

@@ -26,14 +26,12 @@ class RatingServiceTest {
 
     @Test
     void testCreateRating() {
-        // Buat User tanpa builder
         User user = new User();
         user.setId(1L);
         user.setUsername("Daniel");
         user.setPassword("pass");
         user.setRole("CUSTOMER");
 
-        // Buat Menu tanpa builder
         Menu menu = new Menu();
         menu.setId(1L);
         menu.setName("Nasi Goreng");

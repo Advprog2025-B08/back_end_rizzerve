@@ -24,7 +24,6 @@ class RatingRepositoryTest {
 
     @Test
     void testSaveAndFindById() {
-        // Gunakan model User dan Menu yang sebenarnya
         User user = new User();
         user.setId(1L);
         user.setUsername("Daniel");
