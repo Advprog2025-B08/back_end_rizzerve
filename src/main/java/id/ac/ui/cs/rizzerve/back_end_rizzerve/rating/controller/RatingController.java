@@ -31,8 +31,8 @@ public class RatingController {
         return ResponseEntity.ok().build();
     }
 
-    @GetMapping("/average/{productId}")
-    public Double getAverageRating(@PathVariable("productId") Long productId) {
-        return ratingService.getAverageRatingByProductId(productId);
+    @GetMapping("/average/{menuId}")
+    public Double getAverageRating(@PathVariable("menuId") Long menuId) {
+        return ratingService.getAverageRatingByMenuId(menuId);
     }
 }
