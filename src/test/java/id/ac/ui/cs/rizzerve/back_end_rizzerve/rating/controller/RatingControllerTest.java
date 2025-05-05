@@ -1,8 +1,8 @@
 package id.ac.ui.cs.rizzerve.back_end_rizzerve.rating.controller;
 
+import id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_menu.model.Menu;
+import id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_menu.model.User;
 import id.ac.ui.cs.rizzerve.back_end_rizzerve.rating.model.Rating;
-import id.ac.ui.cs.rizzerve.back_end_rizzerve.rating.model.Product;
-import id.ac.ui.cs.rizzerve.back_end_rizzerve.rating.model.User;
 import id.ac.ui.cs.rizzerve.back_end_rizzerve.rating.service.RatingService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -30,7 +30,26 @@ class RatingControllerTest {
 
     @Test
     void testCreateRating_shouldReturnOk() throws Exception {
-        Rating rating = new Rating(1L, new User(1L, "TestUser"), new Product(1L, "Burger"), 4);
+        // Buat User tanpa builder
+        User user = new User();
+        user.setId(1L);
+        user.setUsername("TestUser");
+        user.setPassword("pass");
+        user.setRole("CUSTOMER");
+
+        // Buat Menu tanpa builder
+        Menu menu = new Menu();
+        menu.setId(1L);
+        menu.setName("Burger");
+
+        // Buat Rating dengan builder
+        Rating rating = Rating.builder()
+                .id(1L)
+                .user(user)
+                .menu(menu)
+                .ratingValue(4)
+                .build();
+
         mockMvc.perform(post("/ratings")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(rating)))
@@ -39,7 +58,7 @@ class RatingControllerTest {
 
     @Test
     void testGetAverageRating_shouldReturnDouble() throws Exception {
-        Mockito.when(ratingService.getAverageRatingByProductId(1L)).thenReturn(4.0);
+        Mockito.when(ratingService.getAverageRatingByMenuId(1L)).thenReturn(4.0);
         mockMvc.perform(get("/ratings/average/1"))
                 .andExpect(status().isOk())
                 .andExpect(content().string("4.0"));
