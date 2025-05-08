@@ -1,7 +1,7 @@
 package id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_meja.repository;
 
 import id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_meja.model.Meja;
-import id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_meja.model.User;
+import id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_menu.model.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -67,7 +67,11 @@ public class MejaRepositoryTest {
         mejaRepository.createMeja(12);
         Meja meja = mejaRepository.getMejaByNomor(12);
 
-        User dummyUser = new User(1, "dummy@mail.com", "customer");
+        User dummyUser = new User();
+        dummyUser.setUsername("dummy");
+        dummyUser.setPassword("password123");
+        dummyUser.setRole("USER");
+        dummyUser.setId(1L);
         mejaRepository.setUser(meja.getNomor(), dummyUser.getId());
 
         assertNotNull(mejaRepository.getMejaByNomor(12).getUser());

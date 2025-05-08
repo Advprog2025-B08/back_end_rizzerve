@@ -1,7 +1,7 @@
 package id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_meja.repository;
 
 import id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_meja.model.Meja;
-import id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_meja.model.User;
+import id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_menu.model.User;
 import org.springframework.stereotype.Repository;
 
 import java.util.ArrayList;
@@ -52,12 +52,11 @@ public class MejaRepository {
         return getMejaByNomor(Nomor) == null;
     }
 
-    public Meja setUser(int MejaNum, int userId) {
+    public Meja setUser(int MejaNum, long userId) {
         Meja meja = getMejaByNomor(MejaNum);
         if (meja != null && meja.getUser() == null) {
             User dummyUser = new User();
             dummyUser.setId(userId);
-            dummyUser.setEmail("dummy@email.com");
             dummyUser.setRole("USER");
             meja.setUser(dummyUser);
             return meja;

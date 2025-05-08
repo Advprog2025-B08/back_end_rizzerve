@@ -3,6 +3,9 @@ package id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_meja.model;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_menu.model.Menu;
+import id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_menu.model.User;
+
 
 @Entity
 @Getter

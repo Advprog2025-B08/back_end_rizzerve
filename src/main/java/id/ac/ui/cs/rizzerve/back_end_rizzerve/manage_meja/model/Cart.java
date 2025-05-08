@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_menu.model.Menu;
 
 import java.util.List;
 
