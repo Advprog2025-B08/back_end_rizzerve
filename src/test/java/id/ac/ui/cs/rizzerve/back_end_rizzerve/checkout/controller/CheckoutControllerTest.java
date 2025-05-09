@@ -11,6 +11,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.LocalDateTime;
@@ -64,7 +65,7 @@ public class CheckoutControllerTest {
         request.setCart(dummyCart);
 
         // Act & Assert
-        mockMvc.perform(post("/api/checkout")
+        mockMvc.perform(post("/api/checkouts")
                         .contentType("application/json")
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
@@ -77,7 +78,7 @@ public class CheckoutControllerTest {
     void testCreateCheckout_InvalidCartId() throws Exception {
         CheckoutRequest invalidRequest = new CheckoutRequest(); // cartId is null
 
-        mockMvc.perform(post("/api/checkout")
+        mockMvc.perform(post("/api/checkouts")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(new ObjectMapper().writeValueAsString(invalidRequest)))
                 .andExpect(status().isBadRequest())
