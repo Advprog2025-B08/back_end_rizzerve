@@ -2,6 +2,7 @@ package id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_pesanan.model;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_menu.model.User;
 
 import java.util.ArrayList;
 import java.util.List;

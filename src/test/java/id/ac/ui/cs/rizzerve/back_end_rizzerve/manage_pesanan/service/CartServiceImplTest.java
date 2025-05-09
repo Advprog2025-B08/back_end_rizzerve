@@ -2,10 +2,11 @@ package id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_pesanan.service;
 
 import id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_pesanan.model.Cart;
 import id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_pesanan.model.CartItem;
-import id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_pesanan.model.Menu;
 import id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_pesanan.repository.CartItemRepository;
 import id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_pesanan.repository.CartRepository;
-import id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_pesanan.repository.MenuRepository;
+import id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_menu.repository.MenuRepository;
+import id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_menu.model.Menu;
+import id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_menu.model.User;
 import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -15,7 +16,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
