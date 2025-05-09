@@ -2,6 +2,8 @@ package id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_meja.repository;
 
 import id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_meja.model.Meja;
 import id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_menu.model.User;
+import id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_menu.repository.UserRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 import java.util.ArrayList;
@@ -52,16 +54,9 @@ public class MejaRepository {
         return getMejaByNomor(Nomor) == null;
     }
 
-    public Meja setUser(int MejaNum, long userId) {
-        Meja meja = getMejaByNomor(MejaNum);
-        if (meja != null && meja.getUser() == null) {
-            User dummyUser = new User();
-            dummyUser.setId(userId);
-            dummyUser.setRole("USER");
-            meja.setUser(dummyUser);
-            return meja;
-        }
-        return null;
+    public Meja setUser(Meja meja, User user) {
+        meja.setUser(user);
+        return meja;
     }
 
     public boolean delUser(int MejaNum) {

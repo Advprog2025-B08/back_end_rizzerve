@@ -1,7 +1,9 @@
 package id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_meja.controller;
 
 import id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_meja.model.Meja;
+import id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_meja.dto.UsernameDTO;
 import id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_meja.service.MejaService;
+import id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_menu.model.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -22,6 +24,10 @@ public class MejaControllerTest {
     void setUp() {
         mejaService = Mockito.mock(MejaService.class);
         mejaController = new MejaController(mejaService);
+        User dummyUser = new User();
+        dummyUser.setUsername("testuser");
+        dummyUser.setPassword("password123");
+        dummyUser.setRole("USER");
     }
 
     @Test
@@ -110,18 +116,20 @@ public class MejaControllerTest {
         resultMeja.setNomor(1);
         resultMeja.setId("test-id-1");
 
-        doReturn(resultMeja).when(mejaService).setUserToMeja(1, 123);
+        doReturn(resultMeja).when(mejaService).setUserToMeja(1, "testuser");
+        UsernameDTO usernameDto = new UsernameDTO();
+        usernameDto.setUsername("testuser");
 
-        ResponseEntity<?> response = mejaController.setUserToMeja("1", "123");
+        ResponseEntity<?> response = mejaController.setUserToMeja("1", usernameDto);
         assertEquals(200, response.getStatusCode().value());
         assertNotNull(response.getBody());
     }
 
     @Test
     void testRemoveUserFromMeja() {
-        doReturn(true).when(mejaService).removeUserFromMeja(123);
+        doReturn(true).when(mejaService).removeUserFromMeja(1);
 
-        ResponseEntity<?> response = mejaController.removeUserFromMeja("123");
+        ResponseEntity<?> response = mejaController.removeUserFromMeja("1");
         assertEquals(200, response.getStatusCode().value());
         assertNotNull(response.getBody());
     }

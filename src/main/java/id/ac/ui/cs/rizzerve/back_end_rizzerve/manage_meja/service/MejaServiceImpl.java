@@ -1,7 +1,9 @@
 package id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_meja.service;
 
 import id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_meja.model.Meja;
+import id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_menu.model.User;
 import id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_meja.repository.MejaRepository;
+import id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_menu.repository.UserRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -10,9 +12,11 @@ import java.util.List;
 public class MejaServiceImpl implements MejaService {
 
     private final MejaRepository mejaRepository;
+    private final UserRepository userRepository;
 
-    public MejaServiceImpl(MejaRepository mejaRepository) {
+    public MejaServiceImpl(MejaRepository mejaRepository, UserRepository userRepository) {
         this.mejaRepository = mejaRepository;
+        this.userRepository = userRepository;
     }
 
     @Override
@@ -41,10 +45,18 @@ public class MejaServiceImpl implements MejaService {
     }
 
     @Override
-    public Meja setUserToMeja(int mejaNum, int userId) {
-        return mejaRepository.setUser(mejaNum, userId);
-    }
+    public Meja setUserToMeja(int mejaNum, String username) {
+        Meja meja = mejaRepository.getMejaByNomor(mejaNum);
+        if (meja != null && meja.getUser() == null) {
+            User user = userRepository.findByUsername(username)
+                    .orElse(null);
 
+            if (user != null) {
+                return mejaRepository.setUser(meja, user);
+            }
+        }
+        return null;
+    }
     @Override
     public boolean removeUserFromMeja(int mejaNum) {
         return mejaRepository.delUser(mejaNum);

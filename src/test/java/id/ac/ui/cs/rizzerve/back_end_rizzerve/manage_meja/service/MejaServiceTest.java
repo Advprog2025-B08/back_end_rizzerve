@@ -2,6 +2,7 @@ package id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_meja.service;
 
 import id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_meja.model.Meja;
 import id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_meja.repository.MejaRepository;
+import id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_menu.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -13,12 +14,14 @@ import static org.junit.jupiter.api.Assertions.*;
 public class MejaServiceTest {
 
     private MejaRepository mejaRepository;
+    private UserRepository userRepository;
     private MejaService mejaService;
 
     @BeforeEach
     void setUp() {
         mejaRepository = mock(MejaRepository.class);
-        mejaService = new MejaServiceImpl(mejaRepository);
+        userRepository = mock(UserRepository.class);
+        mejaService = new MejaServiceImpl(mejaRepository, userRepository);
     }
 
     @Test

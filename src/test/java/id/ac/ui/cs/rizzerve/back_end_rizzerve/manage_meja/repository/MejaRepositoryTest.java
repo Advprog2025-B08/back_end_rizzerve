@@ -72,7 +72,7 @@ public class MejaRepositoryTest {
         dummyUser.setPassword("password123");
         dummyUser.setRole("USER");
         dummyUser.setId(1L);
-        mejaRepository.setUser(meja.getNomor(), dummyUser.getId());
+        mejaRepository.setUser(meja, dummyUser);
 
         assertNotNull(mejaRepository.getMejaByNomor(12).getUser());
 
