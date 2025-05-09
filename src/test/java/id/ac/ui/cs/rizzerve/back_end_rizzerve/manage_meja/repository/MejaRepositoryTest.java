@@ -31,7 +31,6 @@ public class MejaRepositoryTest {
     void testCreateMeja() {
         // Create a meja
         Meja meja = new Meja();
-        meja.setId(UUID.randomUUID().toString());
         meja.setNomor(1);
 
         // Save it via entity manager
@@ -48,7 +47,6 @@ public class MejaRepositoryTest {
     void testGetMejaByNomor() {
         // Create a meja
         Meja meja = new Meja();
-        meja.setId(UUID.randomUUID().toString());
         meja.setNomor(10);
 
         // Save via entity manager
@@ -65,7 +63,6 @@ public class MejaRepositoryTest {
     void testUpdateMeja() {
         // Create a meja with nomor 5
         Meja meja = new Meja();
-        meja.setId(UUID.randomUUID().toString());
         meja.setNomor(5);
         entityManager.persist(meja);
         entityManager.flush();
@@ -87,7 +84,6 @@ public class MejaRepositoryTest {
     void testDeleteMeja() {
         // Create a meja
         Meja meja = new Meja();
-        meja.setId(UUID.randomUUID().toString());
         meja.setNomor(4);
         entityManager.persist(meja);
         entityManager.flush();
@@ -113,7 +109,6 @@ public class MejaRepositoryTest {
     void testCheckUniqueFalse() {
         // Create a meja with nomor 3
         Meja meja = new Meja();
-        meja.setId(UUID.randomUUID().toString());
         meja.setNomor(3);
         entityManager.persist(meja);
         entityManager.flush();
@@ -126,7 +121,6 @@ public class MejaRepositoryTest {
     void testSetAndDeleteUser() {
         // Create a meja
         Meja meja = new Meja();
-        meja.setId(UUID.randomUUID().toString());
         meja.setNomor(12);
         entityManager.persist(meja);
 

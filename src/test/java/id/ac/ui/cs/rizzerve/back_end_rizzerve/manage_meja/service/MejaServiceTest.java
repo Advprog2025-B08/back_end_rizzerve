@@ -56,7 +56,7 @@ public class MejaServiceTest {
         int newNomor = 2;
 
         Meja existingMeja = new Meja();
-        existingMeja.setId(UUID.randomUUID().toString());
+        existingMeja.setId(1L);
         existingMeja.setNomor(oldNomor);
 
         when(mejaRepository.getMejaByNomor(oldNomor)).thenReturn(existingMeja);
@@ -78,7 +78,7 @@ public class MejaServiceTest {
         int nomor = 1;
 
         Meja existingMeja = new Meja();
-        existingMeja.setId(UUID.randomUUID().toString());
+        existingMeja.setId(1L);
         existingMeja.setNomor(nomor);
 
         when(mejaRepository.getMejaByNomor(nomor)).thenReturn(existingMeja);
@@ -96,11 +96,11 @@ public class MejaServiceTest {
     void testGetAllMeja() {
         // Setup
         Meja meja1 = new Meja();
-        meja1.setId(UUID.randomUUID().toString());
+        meja1.setId(1L);
         meja1.setNomor(1);
 
         Meja meja2 = new Meja();
-        meja2.setId(UUID.randomUUID().toString());
+        meja2.setId(1L);
         meja2.setNomor(2);
 
         List<Meja> dummyList = List.of(meja1, meja2);
@@ -120,7 +120,7 @@ public class MejaServiceTest {
         int nomor = 1;
 
         Meja meja = new Meja();
-        meja.setId(UUID.randomUUID().toString());
+        meja.setId(1L);
         meja.setNomor(nomor);
 
         when(mejaRepository.getMejaByNomor(nomor)).thenReturn(meja);
@@ -140,7 +140,7 @@ public class MejaServiceTest {
         String username = "testuser";
 
         Meja meja = new Meja();
-        meja.setId(UUID.randomUUID().toString());
+        meja.setId(1L);
         meja.setNomor(mejaNum);
 
         User user = new User();
@@ -167,7 +167,7 @@ public class MejaServiceTest {
         int mejaNum = 1;
 
         Meja meja = new Meja();
-        meja.setId(UUID.randomUUID().toString());
+        meja.setId(1L);
         meja.setNomor(mejaNum);
         meja.setUser(new User());
 
@@ -222,7 +222,7 @@ public class MejaServiceTest {
         int newNomor = 2;
 
         Meja existingMeja = new Meja();
-        existingMeja.setId(UUID.randomUUID().toString());
+        existingMeja.setId(1L);
         existingMeja.setNomor(oldNomor);
 
         when(mejaRepository.getMejaByNomor(oldNomor)).thenReturn(existingMeja);

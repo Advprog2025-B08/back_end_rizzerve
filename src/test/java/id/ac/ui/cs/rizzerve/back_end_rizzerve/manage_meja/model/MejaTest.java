@@ -33,7 +33,7 @@ public class MejaTest {
         cart.setItems(List.of(menu1, menu2));
 
         meja = new Meja();
-        meja.setId("meja-123");
+        meja.setId(1L);
         meja.setNomor(1);
         meja.setUser(dummyUser);
         meja.setCart(cart);
@@ -41,7 +41,7 @@ public class MejaTest {
 
     @Test
     void testGetMejaId() {
-        assertEquals("meja-123", meja.getId());
+        assertEquals(1, meja.getId());
     }
 
     @Test

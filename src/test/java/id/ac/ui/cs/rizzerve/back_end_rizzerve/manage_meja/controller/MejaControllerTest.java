@@ -34,7 +34,7 @@ public class MejaControllerTest {
     void testCreateMeja() {
         Meja meja = new Meja();
         meja.setNomor(1);
-        meja.setId("test-id-1");
+        meja.setId(1L);
 
         doReturn(meja).when(mejaService).createMeja(1);
 
@@ -48,11 +48,11 @@ public class MejaControllerTest {
     void testUpdateMeja() {
         Meja meja = new Meja();
         meja.setNomor(2);
-        meja.setId("test-id-1");
+        meja.setId(1L);
 
         Meja existingMeja = new Meja();
         existingMeja.setNomor(1);
-        existingMeja.setId("test-id-1");
+        existingMeja.setId(1L);
         doReturn(existingMeja).when(mejaService).getMejaByNomor(1);
 
         doReturn(meja).when(mejaService).updateMeja(1, 2);
@@ -67,7 +67,7 @@ public class MejaControllerTest {
     void testDeleteMeja() {
         Meja existingMeja = new Meja();
         existingMeja.setNomor(2);
-        existingMeja.setId("test-id-2");
+        existingMeja.setId(1L);
         doReturn(existingMeja).when(mejaService).getMejaByNomor(2);
 
         doReturn(true).when(mejaService).deleteMeja(2);
@@ -82,11 +82,11 @@ public class MejaControllerTest {
     void testGetAllMeja() {
         Meja meja1 = new Meja();
         meja1.setNomor(1);
-        meja1.setId("test-id-1");
+        meja1.setId(1L);
 
         Meja meja2 = new Meja();
         meja2.setNomor(2);
-        meja2.setId("test-id-2");
+        meja2.setId(1L);
 
         List<Meja> mejaList = Arrays.asList(meja1, meja2);
 
@@ -101,7 +101,7 @@ public class MejaControllerTest {
     void testGetMejaByNomor() {
         Meja meja = new Meja();
         meja.setNomor(1);
-        meja.setId("test-id-1");
+        meja.setId(1L);
 
         doReturn(meja).when(mejaService).getMejaByNomor(1);
 
@@ -114,7 +114,7 @@ public class MejaControllerTest {
     void testSetUserToMeja() {
         Meja resultMeja = new Meja();
         resultMeja.setNomor(1);
-        resultMeja.setId("test-id-1");
+        resultMeja.setId(1L);
 
         doReturn(resultMeja).when(mejaService).setUserToMeja(1, "testuser");
         UsernameDTO usernameDto = new UsernameDTO();
