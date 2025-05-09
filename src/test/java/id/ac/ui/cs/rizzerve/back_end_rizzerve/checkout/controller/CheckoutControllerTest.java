@@ -72,4 +72,15 @@ public class CheckoutControllerTest {
                 .andExpect(jsonPath("$.totalPrice").value(100))
                 .andExpect(jsonPath("$.isSubmitted").value(true));
     }
+
+    @Test
+    void testCreateCheckout_InvalidCartId() throws Exception {
+        CheckoutRequest invalidRequest = new CheckoutRequest(); // cartId is null
+
+        mockMvc.perform(post("/api/checkout")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(new ObjectMapper().writeValueAsString(invalidRequest)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.errors[0].defaultMessage").value("Cart ID cannot be null"));
+    }
 }
