@@ -2,69 +2,33 @@ package id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_meja.repository;
 
 import id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_meja.model.Meja;
 import id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_menu.model.User;
-import id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_menu.repository.UserRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
+import java.util.Optional;
 
 @Repository
-public class MejaRepository {
+public interface MejaRepository extends JpaRepository<Meja, String> {
 
-    private final List<Meja> MejaData = new ArrayList<>();
+    @Query("SELECT m FROM Meja m")
+    List<Meja> getAllMejas();
 
-    public List<Meja> getAllMejas() {
-        return new ArrayList<>(MejaData);
-    }
+    @Query("SELECT m FROM Meja m WHERE m.nomor = :nomor")
+    Meja getMejaByNomor(@Param("nomor") int nomor);
 
-    public Meja getMejaByNomor(int Nomor) {
-        return MejaData.stream()
-                .filter(m -> m.getNomor()==Nomor)
-                .findFirst()
-                .orElse(null);
-    }
+    @Query("SELECT COUNT(m) = 0 FROM Meja m WHERE m.nomor = :nomor")
+    boolean checkUnique(@Param("nomor") int nomor);
 
-    public Meja createMeja(int Nomor) {
-        if (checkUnique(Nomor)) {
-            Meja meja = new Meja();
-            meja.setId(UUID.randomUUID().toString());
-            meja.setNomor(Nomor);
-            MejaData.add(meja);
-            return meja;
-        }
-        return null;
-    }
+    @Query("SELECT m FROM Meja m WHERE m.id = :mejaId")
+    Optional<Meja> findById(@Param("mejaId") Long mejaId);
 
-    public Meja updateMeja(int oldNum, int newNum) {
-        Meja meja = getMejaByNomor(oldNum);
-        if (meja != null && checkUnique(newNum)) {
-            meja.setNomor(newNum);
-            return meja;
-        }
-        return null;
-    }
+    @Query("SELECT m FROM Meja m WHERE m.nomor = :mejaNum")
+    Optional<Meja> findByNomor(@Param("mejaNum") int mejaNum);
 
-    public boolean deleteMeja(int id) {
-        return MejaData.removeIf(meja -> meja.getNomor()==(id));
-    }
-
-    public boolean checkUnique(int Nomor) {
-        return getMejaByNomor(Nomor) == null;
-    }
-
-    public Meja setUser(Meja meja, User user) {
-        meja.setUser(user);
-        return meja;
-    }
-
-    public boolean delUser(int MejaNum) {
-        Meja meja = getMejaByNomor(MejaNum);
-        if (meja != null) {
-            meja.setUser(null);
-            return true;
-        }
-        return false;
-    }
+    List<Meja> findByUserIsNull();
+    List<Meja> findByUserIsNotNull();
+    Optional<Meja> findByUser(User user);
 }
