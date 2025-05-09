@@ -2,6 +2,8 @@ package id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_meja.model;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_menu.model.User;
+import id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_menu.model.Menu;
 
 import java.util.List;
 
@@ -13,16 +15,25 @@ public class MejaTest {
 
     @BeforeEach
     void setUp() {
-        User dummyUser = new User(1, "dummy@mail.com", "customer");
+        User dummyUser = new User();
+        dummyUser.setUsername("testuser");
+        dummyUser.setPassword("password123");
+        dummyUser.setRole("USER");
 
-        Menu menu1 = new Menu("1", "Nasi Goreng", 2);
-        Menu menu2 = new Menu("2", "Es Teh Manis", 1);
+        Menu menu1 = new Menu();
+        menu1.setName("Nasi Goreng");
+        menu1.setIsActive(true);
+        menu1.setDisplayOrder(1);
+        Menu menu2 = new Menu();
+        menu2.setName("Es Teh Manis");
+        menu2.setIsActive(true);
+        menu2.setDisplayOrder(2);
 
         Cart cart = new Cart();
         cart.setItems(List.of(menu1, menu2));
 
         meja = new Meja();
-        meja.setId("meja-123");
+        meja.setId(1L);
         meja.setNomor(1);
         meja.setUser(dummyUser);
         meja.setCart(cart);
@@ -30,7 +41,7 @@ public class MejaTest {
 
     @Test
     void testGetMejaId() {
-        assertEquals("meja-123", meja.getId());
+        assertEquals(1, meja.getId());
     }
 
     @Test
@@ -41,8 +52,8 @@ public class MejaTest {
     @Test
     void testUserAssignedToMeja() {
         assertNotNull(meja.getUser());
-        assertEquals("dummy@mail.com", meja.getUser().getEmail());
-        assertEquals("customer", meja.getUser().getRole());
+        assertEquals("testuser", meja.getUser().getUsername());
+        assertEquals("USER", meja.getUser().getRole());
     }
 
     @Test
@@ -50,10 +61,10 @@ public class MejaTest {
         assertNotNull(meja.getCart());
         assertEquals(2, meja.getCart().getItems().size());
 
-        assertEquals("Nasi Goreng", meja.getCart().getItems().get(0).getNama());
-        assertEquals(2, meja.getCart().getItems().get(0).getJumlah());
+        assertEquals("Nasi Goreng", meja.getCart().getItems().get(0).getName());
+        assertEquals(1, meja.getCart().getItems().get(0).getDisplayOrder());
 
-        assertEquals("Es Teh Manis", meja.getCart().getItems().get(1).getNama());
-        assertEquals(1, meja.getCart().getItems().get(1).getJumlah());
+        assertEquals("Es Teh Manis", meja.getCart().getItems().get(1).getName());
+        assertEquals(2, meja.getCart().getItems().get(1).getDisplayOrder());
     }
 }

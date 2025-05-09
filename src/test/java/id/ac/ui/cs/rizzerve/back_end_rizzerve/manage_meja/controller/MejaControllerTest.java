@@ -1,7 +1,9 @@
 package id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_meja.controller;
 
 import id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_meja.model.Meja;
+import id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_meja.dto.UsernameDTO;
 import id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_meja.service.MejaService;
+import id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_menu.model.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -22,13 +24,17 @@ public class MejaControllerTest {
     void setUp() {
         mejaService = Mockito.mock(MejaService.class);
         mejaController = new MejaController(mejaService);
+        User dummyUser = new User();
+        dummyUser.setUsername("testuser");
+        dummyUser.setPassword("password123");
+        dummyUser.setRole("USER");
     }
 
     @Test
     void testCreateMeja() {
         Meja meja = new Meja();
         meja.setNomor(1);
-        meja.setId("test-id-1");
+        meja.setId(1L);
 
         doReturn(meja).when(mejaService).createMeja(1);
 
@@ -42,11 +48,11 @@ public class MejaControllerTest {
     void testUpdateMeja() {
         Meja meja = new Meja();
         meja.setNomor(2);
-        meja.setId("test-id-1");
+        meja.setId(1L);
 
         Meja existingMeja = new Meja();
         existingMeja.setNomor(1);
-        existingMeja.setId("test-id-1");
+        existingMeja.setId(1L);
         doReturn(existingMeja).when(mejaService).getMejaByNomor(1);
 
         doReturn(meja).when(mejaService).updateMeja(1, 2);
@@ -61,7 +67,7 @@ public class MejaControllerTest {
     void testDeleteMeja() {
         Meja existingMeja = new Meja();
         existingMeja.setNomor(2);
-        existingMeja.setId("test-id-2");
+        existingMeja.setId(1L);
         doReturn(existingMeja).when(mejaService).getMejaByNomor(2);
 
         doReturn(true).when(mejaService).deleteMeja(2);
@@ -76,11 +82,11 @@ public class MejaControllerTest {
     void testGetAllMeja() {
         Meja meja1 = new Meja();
         meja1.setNomor(1);
-        meja1.setId("test-id-1");
+        meja1.setId(1L);
 
         Meja meja2 = new Meja();
         meja2.setNomor(2);
-        meja2.setId("test-id-2");
+        meja2.setId(1L);
 
         List<Meja> mejaList = Arrays.asList(meja1, meja2);
 
@@ -95,7 +101,7 @@ public class MejaControllerTest {
     void testGetMejaByNomor() {
         Meja meja = new Meja();
         meja.setNomor(1);
-        meja.setId("test-id-1");
+        meja.setId(1L);
 
         doReturn(meja).when(mejaService).getMejaByNomor(1);
 
@@ -108,20 +114,22 @@ public class MejaControllerTest {
     void testSetUserToMeja() {
         Meja resultMeja = new Meja();
         resultMeja.setNomor(1);
-        resultMeja.setId("test-id-1");
+        resultMeja.setId(1L);
 
-        doReturn(resultMeja).when(mejaService).setUserToMeja(1, 123);
+        doReturn(resultMeja).when(mejaService).setUserToMeja(1, "testuser");
+        UsernameDTO usernameDto = new UsernameDTO();
+        usernameDto.setUsername("testuser");
 
-        ResponseEntity<?> response = mejaController.setUserToMeja("1", "123");
+        ResponseEntity<?> response = mejaController.setUserToMeja("1", usernameDto);
         assertEquals(200, response.getStatusCode().value());
         assertNotNull(response.getBody());
     }
 
     @Test
     void testRemoveUserFromMeja() {
-        doReturn(true).when(mejaService).removeUserFromMeja(123);
+        doReturn(true).when(mejaService).removeUserFromMeja(1);
 
-        ResponseEntity<?> response = mejaController.removeUserFromMeja("123");
+        ResponseEntity<?> response = mejaController.removeUserFromMeja("1");
         assertEquals(200, response.getStatusCode().value());
         assertNotNull(response.getBody());
     }
