@@ -46,3 +46,9 @@ Selain itu, desain baru menerapkan koneksi database yang lebih tertata, di mana 
 
 ### Component diagram (Checkout module)
 ![Alt text](image-10.png)
+
+### Code diagram (Manage Menu module)
+![Alt text](image-11.png)
+
+### Component diagram (Manage Menu module)
+![Alt text](image-12.png)
