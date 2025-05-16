@@ -40,3 +40,9 @@ Selain itu, desain baru menerapkan koneksi database yang lebih tertata, di mana 
 
 ### Component diagram (Manage Meja module)
 ![Alt text](image-7.png)
+
+### Code diagram (Checkout module)
+![Alt text](image-9.png)
+
+### Component diagram (Checkout module)
+![Alt text](image-10.png)
