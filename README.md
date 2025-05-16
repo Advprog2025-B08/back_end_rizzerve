@@ -34,3 +34,9 @@ Selain itu, desain baru menerapkan koneksi database yang lebih tertata, di mana 
 
 ### Component diagram (Rating module)
 ![Alt text](image-6.png)
+
+### Code diagram (Manage Meja module)
+![Alt text](image-8.png)
+
+### Component diagram (Manage Meja module)
+![Alt text](image-7.png)
