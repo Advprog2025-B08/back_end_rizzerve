@@ -10,3 +10,11 @@
 
 ### Deployment diagram
 ![Alt text](image-2.png)
+
+## 2. The future architecture of the group microservice-based with API Gateway and separate authentication module.
+
+### Perbaikan Context Diagram
+![Alt text](image-3.png)
+
+### Perbaikan Container Diagram
+![Alt text](image-4.png)
