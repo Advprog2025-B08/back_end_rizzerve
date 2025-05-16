@@ -26,3 +26,11 @@ Perbaikan pada context diagram mencakup penambahan API Gateway sebagai komponen 
 Sementara itu, perbaikan pada container diagram menonjolkan pemisahan modul Authentication menjadi layanan terpisah dengan database khusus, sehingga bila terjadi pelanggaran keamanan, dampaknya tidak menjalar ke seluruh sistem. API Gateway juga diperkenalkan sebagai lapisan khusus yang menangani routing permintaan, rate limiting, dan monitoring traffic, yang sebelumnya dilakukan langsung oleh frontend (React) tanpa pengamanan tambahan. Desain arsitektur microservice yang baru mengubah layanan yang awalnya monolitik menjadi beberapa komponen mandiri, seperti Manage Meja, Manage Menu, Manage Pesanan, Rating, dan Checkout. Pendekatan ini memungkinkan setiap layanan untuk di-scale up dan dikembangkan secara independen, sekaligus mengurangi risiko kegagalan menyeluruh dan meningkatkan resiliensi sistem.
 
 Selain itu, desain baru menerapkan koneksi database yang lebih tertata, di mana setiap layanan terhubung ke database-nya sendiri melalui JDBC dan JPA, mendukung isolasi data dan meningkatkan keamanan akses. Dengan arsitektur seperti ini, kami juga lebih mudah menambahkan fitur baru tanpa mengganggu sistem yang sudah berjalan, sehingga risiko regresi dapat diminimalkan dan proses pengembangan lebih efisien. Secara keseluruhan, perbaikan-perbaikan ini dilakukan untuk membangun platform yang lebih aman, scalable, dan sesuai dengan best practices arsitektur modern berbasis microservices.
+
+## 4. Individual component diagram (with its code diagram) of the group B08
+
+### Code diagram (Rating module)
+![Alt text](image-5.png)
+
+### Component diagram (Rating module)
+![Alt text](image-6.png)
