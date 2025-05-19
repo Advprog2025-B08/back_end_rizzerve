@@ -5,9 +5,11 @@ import id.ac.ui.cs.rizzerve.back_end_rizzerve.rating.repository.RatingRepository
 import id.ac.ui.cs.rizzerve.back_end_rizzerve.rating.service.strategy.AverageRatingStrategy;
 import id.ac.ui.cs.rizzerve.back_end_rizzerve.rating.service.strategy.SimpleAverageStrategy;
 import id.ac.ui.cs.rizzerve.back_end_rizzerve.rating.service.helper.RatingCalculatorHelper;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 @Service
@@ -45,6 +47,17 @@ public class RatingServiceImpl implements RatingService {
                 .map(Rating::getRatingValue)
                 .collect(Collectors.toList());
         return averageRatingStrategy.calculateAverage(values);
+    }
+
+    @Async
+    @Override
+    public CompletableFuture<Double> getAverageRatingByMenuIdAsync(Long menuId) {
+        List<Rating> ratings = ratingRepository.findAllByMenuId(menuId);
+        List<Integer> values = ratings.stream()
+                .map(Rating::getRatingValue)
+                .collect(Collectors.toList());
+        double avg = averageRatingStrategy.calculateAverage(values);
+        return CompletableFuture.completedFuture(avg);
     }
 
     public void setAverageRatingStrategy(AverageRatingStrategy strategy) {
