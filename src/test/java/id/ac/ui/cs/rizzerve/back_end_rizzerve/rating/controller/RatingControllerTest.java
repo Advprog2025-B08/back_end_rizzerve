@@ -37,7 +37,7 @@ class RatingControllerTest {
         user.setId(1L);
         user.setUsername("TestUser");
         user.setPassword("pass");
-        user.setRole("CUSTOMER");
+        user.setRole("USER");
 
         Menu menu = new Menu();
         menu.setId(1L);
@@ -53,6 +53,44 @@ class RatingControllerTest {
         mockMvc.perform(post("/ratings")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(rating)))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void testUpdateRating_shouldReturnUpdatedRating() throws Exception {
+        User user = new User();
+        user.setId(2L);
+        user.setUsername("UpdateUser");
+        user.setPassword("pass");
+        user.setRole("USER");
+
+        Menu menu = new Menu();
+        menu.setId(2L);
+        menu.setName("Pizza");
+
+        Rating ratingToUpdate = Rating.builder()
+                .id(10L)
+                .user(user)
+                .menu(menu)
+                .ratingValue(3)
+                .build();
+
+        Mockito.when(ratingService.updateRating(Mockito.any(Rating.class))).thenReturn(ratingToUpdate);
+
+        mockMvc.perform(put("/ratings")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(ratingToUpdate)))
+                .andExpect(status().isOk())
+                .andExpect(content().json(objectMapper.writeValueAsString(ratingToUpdate)));
+    }
+
+    @Test
+    void testDeleteRating_shouldReturnOk() throws Exception {
+        Long ratingIdToDelete = 5L;
+
+        Mockito.doNothing().when(ratingService).deleteRating(ratingIdToDelete);
+
+        mockMvc.perform(delete("/ratings/delete/{menuId}", ratingIdToDelete))
                 .andExpect(status().isOk());
     }
 
