@@ -10,8 +10,11 @@ import org.mockito.Mockito;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import com.fasterxml.jackson.databind.ObjectMapper;
+
+import java.util.concurrent.CompletableFuture;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -54,10 +57,17 @@ class RatingControllerTest {
     }
 
     @Test
-    void testGetAverageRating_shouldReturnDouble() throws Exception {
-        Mockito.when(ratingService.getAverageRatingByMenuId(1L)).thenReturn(4.0);
-        mockMvc.perform(get("/ratings/average/1"))
+    void testGetAverageRating_shouldReturnDoubleAsync() throws Exception {
+        Mockito.when(ratingService.getAverageRatingByMenuIdAsync(1L))
+                .thenReturn(CompletableFuture.completedFuture(4.0));
+
+        MvcResult mvcResult = mockMvc.perform(get("/ratings/average/1"))
+                .andExpect(request().asyncStarted())
+                .andReturn();
+
+        mockMvc.perform(asyncDispatch(mvcResult))
                 .andExpect(status().isOk())
                 .andExpect(content().string("4.0"));
     }
+
 }
