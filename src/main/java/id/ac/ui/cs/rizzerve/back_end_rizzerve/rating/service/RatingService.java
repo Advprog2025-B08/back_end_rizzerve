@@ -9,7 +9,6 @@ public interface RatingService {
     void createRating(Rating rating);
     Rating updateRating(Rating rating);
     void deleteRating(Long id);
-    double getAverageRatingByMenuId(Long menuId);
     @Async
     CompletableFuture<Double> getAverageRatingByMenuIdAsync(Long menuId);
 }

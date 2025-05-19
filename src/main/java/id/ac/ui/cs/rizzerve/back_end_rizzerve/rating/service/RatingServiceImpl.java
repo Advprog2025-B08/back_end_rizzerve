@@ -40,15 +40,6 @@ public class RatingServiceImpl implements RatingService {
         ratingRepository.deleteById(id);
     }
 
-    @Override
-    public double getAverageRatingByMenuId(Long menuId) {
-        List<Rating> ratings = ratingRepository.findAllByMenuId(menuId);
-        List<Integer> values = ratings.stream()
-                .map(Rating::getRatingValue)
-                .collect(Collectors.toList());
-        return averageRatingStrategy.calculateAverage(values);
-    }
-
     @Async
     @Override
     public CompletableFuture<Double> getAverageRatingByMenuIdAsync(Long menuId) {
