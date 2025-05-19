@@ -10,6 +10,10 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -113,7 +117,7 @@ class RatingServiceTest {
     }
 
     @Test
-    void testGetAverageRatingByMenuId() {
+    void testGetAverageRatingByMenuId() throws ExecutionException, InterruptedException, TimeoutException {
         User user1 = new User();
         user1.setId(1L);
         user1.setUsername("Daniel");
@@ -157,8 +161,9 @@ class RatingServiceTest {
                 .ratingValue(5)
                 .build());
 
-        double avg = ratingService.getAverageRatingByMenuId(10L);
+        CompletableFuture<Double> futureAvg = ratingService.getAverageRatingByMenuIdAsync(10L);
+        Double result = futureAvg.get(2, TimeUnit.SECONDS);
 
-        assertEquals(3.666, avg, 0.01);
+        assertEquals(3.666, result, 0.01);
     }
 }
