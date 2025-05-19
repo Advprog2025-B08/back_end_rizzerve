@@ -6,6 +6,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.concurrent.CompletableFuture;
+
 @RestController
 @RequestMapping("/ratings")
 @RequiredArgsConstructor
@@ -32,7 +34,8 @@ public class RatingController {
     }
 
     @GetMapping("/average/{menuId}")
-    public Double getAverageRating(@PathVariable("menuId") Long menuId) {
-        return ratingService.getAverageRatingByMenuId(menuId);
+    public CompletableFuture<ResponseEntity<Double>> getAverageRating(@PathVariable("menuId") Long menuId) {
+        return ratingService.getAverageRatingByMenuIdAsync(menuId)
+                .thenApply(ResponseEntity::ok);
     }
 }
