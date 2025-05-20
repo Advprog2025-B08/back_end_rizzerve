@@ -21,11 +21,11 @@ class RatingTest {
         menu.setId(1L);
         menu.setName("Nasi Goreng");
 
-        Rating rating = Rating.builder()
-                .id(1L)
-                .user(user)
-                .menu(menu)
-                .ratingValue(5)
+        Rating rating = new Rating.RatingBuilder()
+                .setId(1L)
+                .setUser(user)
+                .setMenu(menu)
+                .setRatingValue(5)
                 .build();
 
         assertThat(rating.getUser().getUsername()).isEqualTo("Daniel");
@@ -34,7 +34,7 @@ class RatingTest {
     }
 
     @Test
-    void createRating_Failure() {
+    void createRating_Failure_InvalidRatingValue() {
         User user = new User();
         user.setId(1L);
         user.setUsername("Daniel");
@@ -46,11 +46,43 @@ class RatingTest {
         menu.setName("Nasi Goreng");
 
         assertThrows(IllegalArgumentException.class, () -> {
-            Rating.builder()
-                    .id(1L)
-                    .user(user)
-                    .menu(menu)
-                    .ratingValue(6)
+            new Rating.RatingBuilder()
+                    .setId(1L)
+                    .setUser(user)
+                    .setMenu(menu)
+                    .setRatingValue(6)
+                    .build();
+        });
+    }
+
+    @Test
+    void createRating_Failure_NullUser() {
+        Menu menu = new Menu();
+        menu.setId(1L);
+        menu.setName("Nasi Goreng");
+
+        assertThrows(IllegalArgumentException.class, () -> {
+            new Rating.RatingBuilder()
+                    .setId(1L)
+                    .setMenu(menu)
+                    .setRatingValue(3)
+                    .build();
+        });
+    }
+
+    @Test
+    void createRating_Failure_NullMenu() {
+        User user = new User();
+        user.setId(1L);
+        user.setUsername("Daniel");
+        user.setPassword("pass");
+        user.setRole("CUSTOMER");
+
+        assertThrows(IllegalArgumentException.class, () -> {
+            new Rating.RatingBuilder()
+                    .setId(1L)
+                    .setUser(user)
+                    .setRatingValue(3)
                     .build();
         });
     }

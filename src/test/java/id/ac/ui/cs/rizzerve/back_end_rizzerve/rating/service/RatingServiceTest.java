@@ -2,168 +2,107 @@ package id.ac.ui.cs.rizzerve.back_end_rizzerve.rating.service;
 
 import id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_menu.model.Menu;
 import id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_menu.model.User;
+import id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_menu.repository.MenuRepository;
+import id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_menu.repository.UserRepository;
+import id.ac.ui.cs.rizzerve.back_end_rizzerve.rating.controller.RatingRequest;
 import id.ac.ui.cs.rizzerve.back_end_rizzerve.rating.model.Rating;
 import id.ac.ui.cs.rizzerve.back_end_rizzerve.rating.repository.RatingRepository;
-import id.ac.ui.cs.rizzerve.back_end_rizzerve.rating.service.RatingService;
-import id.ac.ui.cs.rizzerve.back_end_rizzerve.rating.service.RatingServiceImpl;
+import id.ac.ui.cs.rizzerve.back_end_rizzerve.rating.service.strategy.SimpleAverageStrategy;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 class RatingServiceTest {
 
     private RatingRepository ratingRepository;
-    private RatingService ratingService;
+    private MenuRepository menuRepository;
+    private UserRepository userRepository;
+    private RatingServiceImpl ratingService;
+
+    private User user;
+    private Menu menu;
 
     @BeforeEach
     void setUp() {
-        ratingRepository = new RatingRepository();
-        ratingService = new RatingServiceImpl(ratingRepository);
+        ratingRepository = mock(RatingRepository.class);
+        menuRepository = mock(MenuRepository.class);
+        userRepository = mock(UserRepository.class);
+        ratingService = new RatingServiceImpl(ratingRepository, menuRepository, userRepository);
+
+        // Dummy user and menu
+        user = new User();
+        user.setId(1L);
+        user.setUsername("Daniel");
+        user.setPassword("pass");
+        user.setRole("CUSTOMER");
+
+        menu = new Menu();
+        menu.setId(1L);
+        menu.setName("Nasi Goreng");
     }
 
     @Test
     void testCreateRating() {
-        User user = new User();
-        user.setId(1L);
-        user.setUsername("Daniel");
-        user.setPassword("pass");
-        user.setRole("CUSTOMER");
+        when(menuRepository.findById(1L)).thenReturn(Optional.of(menu));
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
 
-        Menu menu = new Menu();
-        menu.setId(1L);
-        menu.setName("Nasi Goreng");
+        ratingService.createRating(1L, 1L, 5);
 
-        Rating rating = Rating.builder()
-                .id(1L)
-                .user(user)
-                .menu(menu)
-                .ratingValue(5)
-                .build();
+        ArgumentCaptor<Rating> captor = ArgumentCaptor.forClass(Rating.class);
+        verify(ratingRepository).save(captor.capture());
 
-        ratingService.createRating(rating);
-
-        Optional<Rating> savedRating = ratingRepository.findById(1L);
-        assertTrue(savedRating.isPresent());
-        assertEquals(5, savedRating.get().getRatingValue());
+        Rating savedRating = captor.getValue();
+        assertEquals(menu, savedRating.getMenu());
+        assertEquals(user, savedRating.getUser());
+        assertEquals(5, savedRating.getRatingValue());
     }
 
     @Test
     void testUpdateRating() {
-        User user = new User();
-        user.setId(1L);
-        user.setUsername("Daniel");
-        user.setPassword("pass");
-        user.setRole("CUSTOMER");
+        Rating existingRating = new Rating();
+        existingRating.setId(1L);
+        existingRating.setRatingValue(3);
 
-        Menu menu = new Menu();
-        menu.setId(1L);
-        menu.setName("Nasi Goreng");
+        RatingRequest request = new RatingRequest();
+        request.setId(1L);
+        request.setRatingValue(4);
 
-        Rating rating = Rating.builder()
-                .id(1L)
-                .user(user)
-                .menu(menu)
-                .ratingValue(4)
-                .build();
+        when(ratingRepository.findById(1L)).thenReturn(Optional.of(existingRating));
+        when(ratingRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
-        ratingService.createRating(rating);
+        Rating updated = ratingService.updateRating(request);
 
-        Rating updatedRating = Rating.builder()
-                .id(1L)
-                .user(user)
-                .menu(menu)
-                .ratingValue(2)
-                .build();
-
-        ratingService.updateRating(updatedRating);
-
-        Optional<Rating> updated = ratingRepository.findById(1L);
-        assertTrue(updated.isPresent());
-        assertEquals(2, updated.get().getRatingValue());
+        assertEquals(4, updated.getRatingValue());
     }
 
     @Test
     void testDeleteRating() {
-        User user = new User();
-        user.setId(1L);
-        user.setUsername("Daniel");
-        user.setPassword("pass");
-        user.setRole("CUSTOMER");
-
-        Menu menu = new Menu();
-        menu.setId(1L);
-        menu.setName("Nasi Goreng");
-
-        Rating rating = Rating.builder()
-                .id(1L)
-                .user(user)
-                .menu(menu)
-                .ratingValue(5)
-                .build();
-
-        ratingService.createRating(rating);
-
-        ratingService.deleteRating(1L);
-
-        Optional<Rating> deleted = ratingRepository.findById(1L);
-        assertTrue(deleted.isEmpty());
+        ratingService.deleteRating(99L);
+        verify(ratingRepository).deleteById(99L);
     }
 
     @Test
-    void testGetAverageRatingByMenuId() throws ExecutionException, InterruptedException, TimeoutException {
-        User user1 = new User();
-        user1.setId(1L);
-        user1.setUsername("Daniel");
-        user1.setPassword("pass");
-        user1.setRole("CUSTOMER");
+    void testGetAverageRatingByMenuIdAsync() throws Exception {
+        Rating r1 = new Rating();
+        r1.setRatingValue(4);
+        Rating r2 = new Rating();
+        r2.setRatingValue(2);
+        Rating r3 = new Rating();
+        r3.setRatingValue(5);
 
-        User user2 = new User();
-        user2.setId(2L);
-        user2.setUsername("Angger");
-        user2.setPassword("pass");
-        user2.setRole("CUSTOMER");
-
-        User user3 = new User();
-        user3.setId(3L);
-        user3.setUsername("Dewandaru");
-        user3.setPassword("pass");
-        user3.setRole("CUSTOMER");
-
-        Menu menu = new Menu();
-        menu.setId(10L);
-        menu.setName("Nasi Goreng");
-
-        ratingService.createRating(Rating.builder()
-                .id(1L)
-                .user(user1)
-                .menu(menu)
-                .ratingValue(4)
-                .build());
-
-        ratingService.createRating(Rating.builder()
-                .id(2L)
-                .user(user2)
-                .menu(menu)
-                .ratingValue(2)
-                .build());
-
-        ratingService.createRating(Rating.builder()
-                .id(3L)
-                .user(user3)
-                .menu(menu)
-                .ratingValue(5)
-                .build());
+        when(ratingRepository.findAllByMenuId(10L)).thenReturn(List.of(r1, r2, r3));
 
         CompletableFuture<Double> futureAvg = ratingService.getAverageRatingByMenuIdAsync(10L);
-        Double result = futureAvg.get(2, TimeUnit.SECONDS);
+        Double avg = futureAvg.get();
 
-        assertEquals(3.666, result, 0.01);
+        assertEquals(3.666, avg, 0.01);
     }
 }

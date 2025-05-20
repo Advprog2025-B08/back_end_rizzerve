@@ -1,5 +1,6 @@
 package id.ac.ui.cs.rizzerve.back_end_rizzerve.rating.controller;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_menu.model.Menu;
 import id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_menu.model.User;
 import id.ac.ui.cs.rizzerve.back_end_rizzerve.rating.model.Rating;
@@ -8,96 +9,88 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.util.concurrent.CompletableFuture;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 class RatingControllerTest {
 
     private MockMvc mockMvc;
-    private RatingService ratingService = Mockito.mock(RatingService.class);
-    private ObjectMapper objectMapper = new ObjectMapper();
+    private RatingService ratingService;
+    private ObjectMapper objectMapper;
 
     @BeforeEach
     void setUp() {
+        ratingService = Mockito.mock(RatingService.class);
         RatingController ratingController = new RatingController(ratingService);
         mockMvc = MockMvcBuilders.standaloneSetup(ratingController).build();
+        objectMapper = new ObjectMapper();
     }
 
     @Test
     void testCreateRating_shouldReturnOk() throws Exception {
-        User user = new User();
-        user.setId(1L);
-        user.setUsername("TestUser");
-        user.setPassword("pass");
-        user.setRole("USER");
+        RatingRequest request = new RatingRequest();
+        request.setMenuId(1L);
+        request.setUserId(2L);
+        request.setRatingValue(4);
 
-        Menu menu = new Menu();
-        menu.setId(1L);
-        menu.setName("Burger");
-
-        Rating rating = Rating.builder()
-                .id(1L)
-                .user(user)
-                .menu(menu)
-                .ratingValue(4)
-                .build();
+        Mockito.doNothing().when(ratingService).createRating(eq(1L), eq(2L), eq(4));
 
         mockMvc.perform(post("/ratings")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(rating)))
+                        .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk());
     }
 
     @Test
     void testUpdateRating_shouldReturnUpdatedRating() throws Exception {
         User user = new User();
-        user.setId(2L);
-        user.setUsername("UpdateUser");
-        user.setPassword("pass");
-        user.setRole("USER");
+        user.setId(1L);
+        user.setUsername("dummyUser");
 
         Menu menu = new Menu();
-        menu.setId(2L);
-        menu.setName("Pizza");
+        menu.setId(1L);
+        menu.setName("Nasi Goreng");
+        menu.setDescription("Enak dan pedas");
 
-        Rating ratingToUpdate = Rating.builder()
-                .id(10L)
-                .user(user)
-                .menu(menu)
-                .ratingValue(3)
-                .build();
+        RatingRequest request = new RatingRequest();
+        request.setId(10L);
+        request.setMenuId(1L);
+        request.setUserId(2L);
+        request.setRatingValue(5);
 
-        Mockito.when(ratingService.updateRating(Mockito.any(Rating.class))).thenReturn(ratingToUpdate);
+        Rating updatedRating = new Rating.RatingBuilder().setId(10L).setUser(user).setMenu(menu).setRatingValue(5).build();
+
+        Mockito.when(ratingService.updateRating(any(RatingRequest.class))).thenReturn(updatedRating);
 
         mockMvc.perform(put("/ratings")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(ratingToUpdate)))
+                        .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
-                .andExpect(content().json(objectMapper.writeValueAsString(ratingToUpdate)));
+                .andExpect(content().json(objectMapper.writeValueAsString(updatedRating)));
     }
 
     @Test
     void testDeleteRating_shouldReturnOk() throws Exception {
-        Long ratingIdToDelete = 5L;
+        Long ratingId = 5L;
 
-        Mockito.doNothing().when(ratingService).deleteRating(ratingIdToDelete);
+        Mockito.doNothing().when(ratingService).deleteRating(ratingId);
 
-        mockMvc.perform(delete("/ratings/delete/{menuId}", ratingIdToDelete))
+        mockMvc.perform(delete("/ratings/delete/{menuId}", ratingId))
                 .andExpect(status().isOk());
     }
 
     @Test
     void testGetAverageRating_shouldReturnDoubleAsync() throws Exception {
         Mockito.when(ratingService.getAverageRatingByMenuIdAsync(1L))
-                .thenReturn(CompletableFuture.completedFuture(4.0));
+                .thenReturn(CompletableFuture.completedFuture(4.5));
 
         MvcResult mvcResult = mockMvc.perform(get("/ratings/average/1"))
                 .andExpect(request().asyncStarted())
@@ -105,7 +98,6 @@ class RatingControllerTest {
 
         mockMvc.perform(asyncDispatch(mvcResult))
                 .andExpect(status().isOk())
-                .andExpect(content().string("4.0"));
+                .andExpect(content().string("4.5"));
     }
-
 }

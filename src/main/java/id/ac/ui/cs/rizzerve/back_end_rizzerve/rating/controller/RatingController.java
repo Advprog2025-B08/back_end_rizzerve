@@ -16,14 +16,14 @@ public class RatingController {
     private final RatingService ratingService;
 
     @PostMapping
-    public ResponseEntity<Void> createRating(@RequestBody Rating rating) {
-        ratingService.createRating(rating);
+    public ResponseEntity<Void> createRating(@RequestBody RatingRequest request) {
+        ratingService.createRating(request.getMenuId(), request.getUserId(),  request.getRatingValue());
         return ResponseEntity.ok().build();
     }
 
     @PutMapping
-    public ResponseEntity<Rating> updateRating(@RequestBody Rating rating) {
-        Rating updated = ratingService.updateRating(rating);
+    public ResponseEntity<Rating> updateRating(@RequestBody RatingRequest request) {
+        Rating updated = ratingService.updateRating(request);
         return ResponseEntity.ok(updated);
     }
 
