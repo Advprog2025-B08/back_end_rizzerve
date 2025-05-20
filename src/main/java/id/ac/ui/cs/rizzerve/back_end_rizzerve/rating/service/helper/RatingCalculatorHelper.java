@@ -1,6 +1,6 @@
 package id.ac.ui.cs.rizzerve.back_end_rizzerve.rating.service.helper;
 
-public class RatingCalculatorHelper {
+public final class RatingCalculatorHelper {
 
     private static RatingCalculatorHelper instance;
 
