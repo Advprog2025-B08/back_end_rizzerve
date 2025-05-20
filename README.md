@@ -3,21 +3,21 @@
 ## 1. The current architecture of the group Client-Server Architecture , the context, container and deployment diagram
 
 ### Context diagram
-![Alt text](image.png)
+![Alt text](images/image.png)
 
 ### Container diagram
-![Alt text](image-1.png)
+![Alt text](images/image-1.png)
 
 ### Deployment diagram
-![Alt text](image-2.png)
+![Alt text](images/image-2.png)
 
 ## 2. The future architecture of the group microservice-based with API Gateway and separate authentication module.
 
 ### Perbaikan Context Diagram
-![Alt text](image-3.png)
+![Alt text](images/image-3.png)
 
 ### Perbaikan Container Diagram
-![Alt text](image-4.png)
+![Alt text](images/image-4.png)
 
 ## 3. Explanation of risk storming of the group B08
 
@@ -30,25 +30,31 @@ Selain itu, desain baru menerapkan koneksi database yang lebih tertata, di mana 
 ## 4. Individual component diagram (with its code diagram) of the group B08
 
 ### Code diagram (Rating module)
-![Alt text](image-5.png)
+![Alt text](images/image-5.png)
 
 ### Component diagram (Rating module)
-![Alt text](image-6.png)
+![Alt text](images/image-6.png)
 
 ### Code diagram (Manage Meja module)
-![Alt text](image-8.png)
+![Alt text](images/image-8.png)
 
 ### Component diagram (Manage Meja module)
-![Alt text](image-7.png)
+![Alt text](images/image-7.png)
 
 ### Code diagram (Checkout module)
-![Alt text](image-9.png)
+![Alt text](images/image-9.png)
 
 ### Component diagram (Checkout module)
-![Alt text](image-10.png)
+![Alt text](images/image-10.png)
 
 ### Code diagram (Manage Menu module)
-![Alt text](image-11.png)
+![Alt text](images/image-11.png)
 
 ### Component diagram (Manage Menu module)
-![Alt text](image-12.png)
+![Alt text](images/image-12.png)
+
+### Code diagram (Manage Pesanan module)
+![Alt text](images/image-13.png)
+
+### Component diagram (Manage Pesanan module)
+![Alt text](images/image-14.png)
