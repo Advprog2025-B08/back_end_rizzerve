@@ -2,7 +2,7 @@ package id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_meja.controller;
 
 import id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_meja.model.Meja;
 import id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_meja.service.MejaService;
-import id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_meja.dto.UsernameDTO;
+import id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_meja.dto.*;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -56,7 +56,7 @@ public class MejaController {
 
     @GetMapping("/read")
     public ResponseEntity<?> getAllMeja() {
-        List<Meja> list = mejaService.getAllMeja();
+        List<MejaDTO> list = mejaService.getAllMeja();
         if (list.isEmpty()) {
             return ResponseEntity.badRequest().body(Map.of("errorCode", 8200, "message", "No meja found"));
         }
@@ -65,7 +65,7 @@ public class MejaController {
 
     @GetMapping("/read/{meja_id}")
     public ResponseEntity<?> getMejaByNomor(@PathVariable("meja_id") int nomor) {
-        Meja meja = mejaService.getMejaByNomor(nomor);
+        MejaDTO meja = mejaService.getMejaByNomor(nomor);
         if (meja == null) {
             ResponseEntity.badRequest().body(Map.of("errorCode", 8202, "message", "Request param meja_id is not found"));
         }
