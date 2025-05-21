@@ -28,10 +28,13 @@ public class SecurityConfig {
         http
             .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/auth/**").permitAll()
-                .requestMatchers("/api/menus/admin/**").hasRole("ADMIN")
-                .requestMatchers("/api/menus").permitAll()
-                .anyRequest().authenticated()
+                    .requestMatchers("/api/auth/**").permitAll()
+                    .requestMatchers("/api/menus/admin/**").hasRole("ADMIN")
+                    .requestMatchers("/api/menus").permitAll()
+                    .requestMatchers("/ratings/**").permitAll()
+                    .requestMatchers("/").permitAll()
+                    .requestMatchers("/login").permitAll()
+                    .anyRequest().authenticated()
             )
             .sessionManagement(session -> session
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
