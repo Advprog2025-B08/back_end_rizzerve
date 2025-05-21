@@ -74,9 +74,9 @@ public class MejaController {
 
     @PostMapping("/set/{meja_id}")
     public ResponseEntity<?> setUserToMeja(@PathVariable("meja_id") String mejaId, @RequestBody UsernameDTO usernameDto) {
-        int id_val = Integer.valueOf(mejaId);
+        int idVal = Integer.valueOf(mejaId);
         String username = usernameDto.getUsername();
-        Meja result = mejaService.setUserToMeja(id_val, username);
+        Meja result = mejaService.setUserToMeja(idVal, username);
 
         if (result == null) {
             return ResponseEntity.badRequest().body(Map.of("errorCode", 8200, "message", "Failed to set user to meja."));
@@ -87,8 +87,8 @@ public class MejaController {
 
     @PostMapping("/complete_order/{meja_id}")
     public ResponseEntity<?> removeUserFromMeja(@PathVariable("meja_id") String mejaId) {
-        int id_val = Integer.valueOf(mejaId);
-        boolean result = mejaService.removeUserFromMeja(id_val);
+        int idVal = Integer.valueOf(mejaId);
+        boolean result = mejaService.removeUserFromMeja(idVal);
         if (result){
             return ResponseEntity.ok(Map.of("message", result));
         }
