@@ -37,7 +37,7 @@ public class CorsTest {
                         .header("Access-Control-Request-Method", "GET")
                         .header("Access-Control-Request-Headers", "Content-Type, Authorization"))
                 .andExpect(header().string("Access-Control-Allow-Origin", "http://localhost:3000"))
-                .andExpect(header().string("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE"))
+                .andExpect(header().string("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS"))
                 .andExpect(header().string("Access-Control-Allow-Headers", "Content-Type, Authorization"));
     }
 }
