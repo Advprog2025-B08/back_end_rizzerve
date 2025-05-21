@@ -3,11 +3,14 @@ package id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_meja.service;
 import id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_meja.model.Meja;
 import id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_meja.repository.MejaRepository;
 import id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_menu.model.User;
+import id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_pesanan.model.Cart;
 import id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_menu.repository.UserRepository;
+import id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_pesanan.repository.CartRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -16,11 +19,13 @@ public class MejaServiceImpl implements MejaService {
 
     private final MejaRepository mejaRepository;
     private final UserRepository userRepository;
+    private final CartRepository cartRepository;
 
     @Autowired
-    public MejaServiceImpl(MejaRepository mejaRepository, UserRepository userRepository) {
+    public MejaServiceImpl(MejaRepository mejaRepository, UserRepository userRepository, CartRepository cartRepository) {
         this.mejaRepository = mejaRepository;
         this.userRepository = userRepository;
+        this.cartRepository = cartRepository;
     }
 
     @Override
@@ -74,6 +79,16 @@ public class MejaServiceImpl implements MejaService {
             User user = userRepository.findByUsername(username).orElse(null);
             if (user != null) {
                 meja.setUser(user);
+                Cart userCart = cartRepository.findByUserId(user.getId())
+                        .orElseGet(() -> {
+                            Cart newCart = Cart.builder()
+                                    .userId(user.getId())
+                                    .user(user)
+                                    .items(new ArrayList<>())
+                                    .build();
+                            return cartRepository.save(newCart);
+                        });
+                meja.setCart(userCart);
                 return mejaRepository.save(meja);
             }
         }

@@ -2,6 +2,7 @@ package id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_meja.model;
 
 import jakarta.persistence.*;
 import id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_menu.model.User;
+import id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_pesanan.model.Cart;
 import java.util.Objects;
 
 @Entity

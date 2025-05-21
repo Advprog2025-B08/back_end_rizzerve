@@ -4,6 +4,8 @@ import id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_meja.model.Meja;
 import id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_meja.repository.MejaRepository;
 import id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_menu.model.User;
 import id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_menu.repository.UserRepository;
+import id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_pesanan.model.Cart;
+import id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_pesanan.repository.CartRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -26,6 +28,9 @@ public class MejaServiceTest {
 
     @Mock
     private UserRepository userRepository;
+
+    @Mock
+    private CartRepository cartRepository;
 
     @InjectMocks
     private MejaServiceImpl mejaService;
