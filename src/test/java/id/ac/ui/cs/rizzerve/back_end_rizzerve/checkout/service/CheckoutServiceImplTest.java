@@ -179,7 +179,8 @@ class CheckoutServiceImplTest {
         checkoutService.deleteCheckout(checkoutId);
 
         // Assert
-        verify(checkoutRepository, times(1)).deleteById(checkoutId);
+        verify(checkoutRepository, times(1)).findById(checkoutId);
+        verify(checkoutRepository).delete(checkout);
     }
 
 }

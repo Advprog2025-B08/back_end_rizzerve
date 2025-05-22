@@ -9,6 +9,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.NoSuchElementException;
+import java.util.Optional;
 
 @Service
 public class CheckoutServiceImpl implements CheckoutService {
@@ -32,7 +34,14 @@ public class CheckoutServiceImpl implements CheckoutService {
 
     @Override
     public void deleteCheckout(Long checkoutID) {
-        checkoutRepository.deleteById(checkoutID);
+        Checkout checkout = checkoutRepository.findById(checkoutID)
+                .orElseThrow(() -> new NoSuchElementException("Checkout not found"));
+
+        if (checkout.getIsSubmitted()) {
+            throw new IllegalStateException("Cannot cancel a submitted checkout");
+        }
+
+        checkoutRepository.delete(checkout);
     }
 
     private int calculateTotalPrice(Cart cart) {
@@ -55,4 +64,46 @@ public class CheckoutServiceImpl implements CheckoutService {
                 .build();
         return checkout;
     }
+
+    @Override
+    public void updateCartItemQuantity(Long cartId, Long itemId, int deltaQuantity) {
+        Cart cart = cartRepository.findById(cartId)
+                .orElseThrow(() -> new IllegalArgumentException("Cart not found"));
+
+        CartItem item = cart.getItems().stream()
+                .filter(ci -> ci.getId().equals(itemId))
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("Item not found in this cart"));
+
+        int updatedQuantity = item.getQuantity() + deltaQuantity;
+
+        if (updatedQuantity < 0) {
+            throw new IllegalArgumentException("Quantity cannot be negative");
+        } else if (updatedQuantity == 0) {
+            cart.getItems().remove(item);
+        } else {
+            item.setQuantity(updatedQuantity);
+        }
+
+        cartRepository.save(cart);
+    }
+
+    @Override
+    public Optional<Checkout> findById(Long checkoutId) {
+        return checkoutRepository.findById(checkoutId);
+    }
+
+    @Override
+    public Checkout submitCheckout(Long checkoutId) {
+        Checkout checkout = checkoutRepository.findById(checkoutId)
+                .orElseThrow(() -> new NoSuchElementException("Checkout not found"));
+
+        if (checkout.getIsSubmitted()) {
+            throw new IllegalStateException("Checkout already submitted");
+        }
+
+        checkout.setIsSubmitted(true);
+        return checkoutRepository.save(checkout);
+    }
+
 }
