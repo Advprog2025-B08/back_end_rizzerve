@@ -1,10 +1,9 @@
 package id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_pesanan.repository;
 
+import id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_menu.model.Menu;
+import id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_menu.model.User;
 import id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_pesanan.model.Cart;
 import id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_pesanan.model.CartItem;
-import id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_pesanan.model.Menu;
-import id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_pesanan.model.User;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
@@ -23,87 +22,114 @@ class CartItemRepositoryTest {
     @Autowired
     private CartItemRepository cartItemRepository;
 
-    private Long cartId;
-    private Long menuId;
-
-    @BeforeEach
-    void setUp() {
-        // Create user
-        User user = User.builder()
-                .username("testuser")
-                .password("password")
-                .build();
-        entityManager.persist(user);
-
-        // Create cart
-        Cart cart = Cart.builder()
-                .userId(user.getId())
-                .build();
-        entityManager.persist(cart);
-        cartId = cart.getId();
-
-        // Create menu
-        Menu menu = new Menu();
-        menu.setName("Test Menu");
-        entityManager.persist(menu);
-        menuId = menu.getId();
-
-        entityManager.flush();
-    }
+    @Autowired
+    private CartRepository cartRepository;
 
     @Test
     void whenFindByCartIdAndMenuId_thenReturnCartItem() {
-        // Given
-        CartItem cartItem = CartItem.builder()
-                .cartId(cartId)
-                .menuId(menuId)
-                .quantity(2)
-                .build();
+        User user = new User();
+        user.setUsername("testuser");
+        user.setPassword("password");
+        user.setRole("USER");
+        entityManager.persist(user);
+        entityManager.flush();
+
+        Menu menu = new Menu();
+        menu.setName("Test Menu");
+        menu.setDescription("Test Description");
+        entityManager.persist(menu);
+        entityManager.flush();
+
+        Cart cart = new Cart();
+        cart.setUserId(user.getId());
+        entityManager.persist(cart);
+        entityManager.flush();
+
+        CartItem cartItem = new CartItem();
+        cartItem.setCartId(cart.getId());
+        cartItem.setMenuId(menu.getId());
+        cartItem.setQuantity(2);
         entityManager.persist(cartItem);
         entityManager.flush();
 
-        // When
-        Optional<CartItem> found = cartItemRepository.findByCartIdAndMenuId(cartId, menuId);
+        Optional<CartItem> found = cartItemRepository.findByCartIdAndMenuId(cart.getId(), menu.getId());
 
-        // Then
         assertTrue(found.isPresent());
-        assertEquals(cartItem.getId(), found.get().getId());
-        assertEquals(cartId, found.get().getCartId());
-        assertEquals(menuId, found.get().getMenuId());
+        assertEquals(cart.getId(), found.get().getCartId());
+        assertEquals(menu.getId(), found.get().getMenuId());
         assertEquals(2, found.get().getQuantity());
     }
 
     @Test
     void whenFindByInvalidCartIdAndMenuId_thenReturnEmpty() {
-        // Given
-        Long invalidCartId = 999L;
-        Long invalidMenuId = 999L;
+        Optional<CartItem> found = cartItemRepository.findByCartIdAndMenuId(99L, 999L);
 
-        // When
-        Optional<CartItem> found = cartItemRepository.findByCartIdAndMenuId(invalidCartId, invalidMenuId);
-
-        // Then
         assertFalse(found.isPresent());
     }
 
     @Test
-    void whenSaveCartItem_thenCanRetrieve() {
-        // Given
-        CartItem cartItem = CartItem.builder()
-                .cartId(cartId)
-                .menuId(menuId)
-                .quantity(3)
-                .build();
+    void testSaveCartItem() {
+        User user = new User();
+        user.setUsername("testuser");
+        user.setPassword("password");
+        user.setRole("USER");
+        entityManager.persist(user);
+        entityManager.flush();
 
-        // When
+        Menu menu = new Menu();
+        menu.setName("Test Menu");
+        menu.setDescription("Test Description");
+        entityManager.persist(menu);
+        entityManager.flush();
+
+        Cart cart = new Cart();
+        cart.setUserId(user.getId());
+        entityManager.persist(cart);
+        entityManager.flush();
+
+        CartItem cartItem = new CartItem();
+        cartItem.setCartId(cart.getId());
+        cartItem.setMenuId(menu.getId());
+        cartItem.setQuantity(3);
+
         CartItem saved = cartItemRepository.save(cartItem);
-        Optional<CartItem> found = cartItemRepository.findById(saved.getId());
 
-        // Then
-        assertTrue(found.isPresent());
-        assertEquals(saved.getId(), found.get().getId());
-        assertEquals(cartId, found.get().getCartId());
-        assertEquals(menuId, found.get().getMenuId());
-        assertEquals(3, found.get().getQuantity());
+        assertNotNull(saved.getId());
+        assertEquals(cart.getId(), saved.getCartId());
+        assertEquals(menu.getId(), saved.getMenuId());
+        assertEquals(3, saved.getQuantity());
+    }
+
+    @Test
+    void testDeleteCartItem() {
+        User user = new User();
+        user.setUsername("testuser");
+        user.setPassword("password");
+        user.setRole("USER");
+        entityManager.persist(user);
+        entityManager.flush();
+
+        Menu menu = new Menu();
+        menu.setName("Test Menu");
+        menu.setDescription("Test Description");
+        entityManager.persist(menu);
+        entityManager.flush();
+
+        Cart cart = new Cart();
+        cart.setUserId(user.getId());
+        entityManager.persist(cart);
+        entityManager.flush();
+
+        CartItem cartItem = new CartItem();
+        cartItem.setCartId(cart.getId());
+        cartItem.setMenuId(menu.getId());
+        cartItem.setQuantity(1);
+        entityManager.persist(cartItem);
+        entityManager.flush();
+
+        cartItemRepository.delete(cartItem);
+        Optional<CartItem> found = cartItemRepository.findByCartIdAndMenuId(cart.getId(), menu.getId());
+
+        assertFalse(found.isPresent());
     }
 }

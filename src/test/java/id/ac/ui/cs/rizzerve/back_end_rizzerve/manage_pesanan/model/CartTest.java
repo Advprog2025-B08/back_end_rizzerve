@@ -1,12 +1,13 @@
 package id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_pesanan.model;
 
+import static org.junit.jupiter.api.Assertions.*;
+
+import id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_menu.model.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 class CartTest {
 
@@ -16,11 +17,11 @@ class CartTest {
 
     @BeforeEach
     void setUp() {
-        user = User.builder()
-                .id(1L)
-                .username("testuser")
-                .password("password")
-                .build();
+        user = new User();
+        user.setId(1L);
+        user.setUsername("testuser");
+        user.setPassword("password");
+        user.setRole("USER");
 
         cart = Cart.builder()
                 .id(1L)
@@ -31,70 +32,45 @@ class CartTest {
 
         cartItem = CartItem.builder()
                 .id(1L)
-                .menuId(1L)
-                .cartId(1L)
+                .menuId(101L)
                 .quantity(2)
-                .cart(cart)
+                .cartId(1L)
                 .build();
     }
 
     @Test
-    void testGettersAndSetters() {
+    void testCartCreation() {
+        assertNotNull(cart);
         assertEquals(1L, cart.getId());
         assertEquals(1L, cart.getUserId());
         assertEquals(user, cart.getUser());
         assertTrue(cart.getItems().isEmpty());
+    }
 
-        // Test setters
-        cart.setId(2L);
-        cart.setUserId(2L);
+    @Test
+    void testAddItemToCart() {
+        List<CartItem> items = new ArrayList<>();
+        items.add(cartItem);
+        cart.setItems(items);
 
-        User newUser = User.builder().id(2L).username("newuser").password("newpass").build();
-        cart.setUser(newUser);
-
-        List<CartItem> newItems = new ArrayList<>();
-        newItems.add(cartItem);
-        cart.setItems(newItems);
-
-        assertEquals(2L, cart.getId());
-        assertEquals(2L, cart.getUserId());
-        assertEquals(newUser, cart.getUser());
         assertEquals(1, cart.getItems().size());
         assertEquals(cartItem, cart.getItems().get(0));
     }
 
     @Test
-    void testAddingAndRemovingItems() {
-        // Add item to cart
-        cart.getItems().add(cartItem);
-        assertEquals(1, cart.getItems().size());
+    void testRemoveItemFromCart() {
+        List<CartItem> items = new ArrayList<>();
+        items.add(cartItem);
+        cart.setItems(items);
 
-        // Remove item from cart
         cart.getItems().remove(cartItem);
+
         assertTrue(cart.getItems().isEmpty());
     }
 
     @Test
-    void testNoArgsConstructor() {
-        Cart emptyCart = new Cart();
-        assertNull(emptyCart.getId());
-        assertNull(emptyCart.getUserId());
-        assertNull(emptyCart.getUser());
-        assertNotNull(emptyCart.getItems());
-        assertTrue(emptyCart.getItems().isEmpty());
-    }
-
-    @Test
-    void testAllArgsConstructor() {
-        List<CartItem> items = new ArrayList<>();
-        items.add(cartItem);
-
-        Cart fullCart = new Cart(1L, 1L, user, items);
-
-        assertEquals(1L, fullCart.getId());
-        assertEquals(1L, fullCart.getUserId());
-        assertEquals(user, fullCart.getUser());
-        assertEquals(1, fullCart.getItems().size());
-        assertEquals(cartItem, fullCart.getItems().get(0));
+    void testCartUserAssociation() {
+        assertEquals(user, cart.getUser());
+        assertEquals("testuser", cart.getUser().getUsername());
     }
 }

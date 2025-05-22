@@ -1,6 +1,7 @@
 package id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_meja.controller;
 
 import id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_meja.model.Meja;
+import id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_meja.dto.*;
 import id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_meja.dto.UsernameDTO;
 import id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_meja.service.MejaService;
 import id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_menu.model.User;
@@ -50,10 +51,19 @@ public class MejaControllerTest {
         meja.setNomor(2);
         meja.setId(1L);
 
+        MejaDTO mejaDto = new MejaDTO();
+        mejaDto.setNomor(2);
+        mejaDto.setId(1L);
+
         Meja existingMeja = new Meja();
         existingMeja.setNomor(1);
         existingMeja.setId(1L);
-        doReturn(existingMeja).when(mejaService).getMejaByNomor(1);
+
+        MejaDTO existingMejaDto = new MejaDTO();
+        existingMejaDto.setNomor(1);
+        existingMejaDto.setId(1L);
+
+        doReturn(existingMejaDto).when(mejaService).getMejaByNomor(1);
 
         doReturn(meja).when(mejaService).updateMeja(1, 2);
 
@@ -68,7 +78,12 @@ public class MejaControllerTest {
         Meja existingMeja = new Meja();
         existingMeja.setNomor(2);
         existingMeja.setId(1L);
-        doReturn(existingMeja).when(mejaService).getMejaByNomor(2);
+
+        MejaDTO mejaDto = new MejaDTO();
+        mejaDto.setNomor(2);
+        mejaDto.setId(1L);
+
+        doReturn(mejaDto).when(mejaService).getMejaByNomor(2);
 
         doReturn(true).when(mejaService).deleteMeja(2);
 
@@ -103,7 +118,11 @@ public class MejaControllerTest {
         meja.setNomor(1);
         meja.setId(1L);
 
-        doReturn(meja).when(mejaService).getMejaByNomor(1);
+        MejaDTO mejaDto = new MejaDTO();
+        mejaDto.setNomor(1);
+        mejaDto.setId(1L);
+
+        doReturn(mejaDto).when(mejaService).getMejaByNomor(1);
 
         ResponseEntity<?> response = mejaController.getMejaByNomor(1);
         assertEquals(200, response.getStatusCode().value());

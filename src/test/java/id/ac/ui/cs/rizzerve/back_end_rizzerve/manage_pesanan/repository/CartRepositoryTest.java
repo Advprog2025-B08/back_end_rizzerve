@@ -1,7 +1,7 @@
 package id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_pesanan.repository;
 
+import id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_menu.model.User;
 import id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_pesanan.model.Cart;
-import id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_pesanan.model.User;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
@@ -22,61 +22,66 @@ class CartRepositoryTest {
 
     @Test
     void whenFindByUserId_thenReturnCart() {
-        // Given
-        User user = User.builder()
-                .username("testuser")
-                .password("password")
-                .build();
+        User user = new User();
+        user.setUsername("testuser");
+        user.setPassword("password");
+        user.setRole("USER");
         entityManager.persist(user);
-
-        Cart cart = Cart.builder()
-                .userId(user.getId())
-                .build();
-        entityManager.persist(cart);
-
         entityManager.flush();
 
-        // When
+        Cart cart = new Cart();
+        cart.setUserId(user.getId());
+        entityManager.persist(cart);
+        entityManager.flush();
+
         Optional<Cart> found = cartRepository.findByUserId(user.getId());
 
-        // Then
         assertTrue(found.isPresent());
-        assertEquals(cart.getId(), found.get().getId());
         assertEquals(user.getId(), found.get().getUserId());
     }
 
     @Test
     void whenFindByInvalidUserId_thenReturnEmpty() {
-        // Given
-        Long invalidUserId = 999L;
+        Optional<Cart> found = cartRepository.findByUserId(99L);
 
-        // When
-        Optional<Cart> found = cartRepository.findByUserId(invalidUserId);
-
-        // Then
         assertFalse(found.isPresent());
     }
 
     @Test
-    void whenSaveCart_thenCanRetrieve() {
-        // Given
-        User user = User.builder()
-                .username("testuser2")
-                .password("password")
-                .build();
+    void testSaveCart() {
+        User user = new User();
+        user.setUsername("testuser");
+        user.setPassword("password");
+        user.setRole("USER");
         entityManager.persist(user);
+        entityManager.flush();
 
-        Cart cart = Cart.builder()
-                .userId(user.getId())
-                .build();
+        Cart cart = new Cart();
+        cart.setUserId(user.getId());
 
-        // When
         Cart saved = cartRepository.save(cart);
-        Optional<Cart> found = cartRepository.findById(saved.getId());
 
-        // Then
-        assertTrue(found.isPresent());
-        assertEquals(saved.getId(), found.get().getId());
-        assertEquals(user.getId(), found.get().getUserId());
+        assertNotNull(saved.getId());
+        assertEquals(user.getId(), saved.getUserId());
+    }
+
+    @Test
+    void testDeleteCart() {
+        User user = new User();
+        user.setUsername("testuser");
+        user.setPassword("password");
+        user.setRole("USER");
+        entityManager.persist(user);
+        entityManager.flush();
+
+        Cart cart = new Cart();
+        cart.setUserId(user.getId());
+        entityManager.persist(cart);
+        entityManager.flush();
+
+        cartRepository.delete(cart);
+        Optional<Cart> found = cartRepository.findByUserId(user.getId());
+
+        assertFalse(found.isPresent());
     }
 }

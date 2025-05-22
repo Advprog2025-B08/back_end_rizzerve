@@ -1,10 +1,10 @@
 package id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_meja.service;
 
 import id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_meja.model.Meja;
+import id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_meja.dto.*;
 import id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_meja.repository.MejaRepository;
+import id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_meja.mediator.RestaurantMediator;
 import id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_menu.model.User;
-import id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_menu.repository.UserRepository;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -25,7 +25,7 @@ public class MejaServiceTest {
     private MejaRepository mejaRepository;
 
     @Mock
-    private UserRepository userRepository;
+    private RestaurantMediator mediator;
 
     @InjectMocks
     private MejaServiceImpl mejaService;
@@ -107,7 +107,7 @@ public class MejaServiceTest {
         when(mejaRepository.getAllMejas()).thenReturn(dummyList);
 
         // Execute
-        List<Meja> result = mejaService.getAllMeja();
+        List<MejaDTO> result = mejaService.getAllMeja();
 
         // Verify
         assertEquals(2, result.size());
@@ -126,7 +126,7 @@ public class MejaServiceTest {
         when(mejaRepository.getMejaByNomor(nomor)).thenReturn(meja);
 
         // Execute
-        Meja result = mejaService.getMejaByNomor(nomor);
+        MejaDTO result = mejaService.getMejaByNomor(nomor);
 
         // Verify
         assertEquals(nomor, result.getNomor());
@@ -148,7 +148,7 @@ public class MejaServiceTest {
         user.setUsername(username);
 
         when(mejaRepository.getMejaByNomor(mejaNum)).thenReturn(meja);
-        when(userRepository.findByUsername(username)).thenReturn(Optional.of(user));
+        when(mediator.findUserByUsername(username)).thenReturn(user);
         when(mejaRepository.save(any(Meja.class))).thenReturn(meja);
 
         // Execute
@@ -157,7 +157,7 @@ public class MejaServiceTest {
         // Verify
         assertNotNull(result);
         verify(mejaRepository).getMejaByNomor(mejaNum);
-        verify(userRepository).findByUsername(username);
+        verify(mediator).findUserByUsername(username);
         verify(mejaRepository).save(any(Meja.class));
     }
 
