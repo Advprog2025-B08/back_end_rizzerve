@@ -30,6 +30,11 @@ public class CheckoutServiceImpl implements CheckoutService {
         return checkoutRepository.save(checkout);
     }
 
+    @Override
+    public void deleteCheckout(Long checkoutID) {
+        checkoutRepository.deleteById(checkoutID);
+    }
+
     private int calculateTotalPrice(Cart cart) {
         // Menghitung total harga berdasarkan cart yang ada
         return cart.getItems().stream()
