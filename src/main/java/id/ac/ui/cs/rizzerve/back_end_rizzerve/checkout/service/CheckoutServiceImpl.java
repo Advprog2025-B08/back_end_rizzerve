@@ -55,14 +55,13 @@ public class CheckoutServiceImpl implements CheckoutService {
         Cart cart = cartRepository.findById(cartId)
                 .orElseThrow(() -> new IllegalArgumentException("Cart not found"));
 
-        Checkout checkout = Checkout.builder()
-                .user(cart.getUser()) // Hubungkan dengan user yang sama
-                .cart(cart) // Hubungkan Cart yang sudah ada
-                .totalPrice(calculateTotalPrice(cart)) // Misalnya hitung total price dari Cart
+        return Checkout.builder()
+                .user(cart.getUser())
+                .cart(cart)
+                .totalPrice(calculateTotalPrice(cart))
                 .isSubmitted(false)
                 .createdAt(LocalDateTime.now())
                 .build();
-        return checkout;
     }
 
     @Override
