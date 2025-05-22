@@ -85,9 +85,14 @@ class RatingServiceTest {
 
     @Test
     void testDeleteRating() {
+        Rating rating = new Rating();
+        when(ratingRepository.findById(99L)).thenReturn(Optional.of(rating));
+
         ratingService.deleteRating(99L);
+
         verify(ratingRepository).deleteById(99L);
     }
+
 
     @Test
     void testGetAverageRatingByMenuIdAsync() throws Exception {
