@@ -4,7 +4,7 @@ import id.ac.ui.cs.rizzerve.back_end_rizzerve.checkout.model.Checkout;
 import id.ac.ui.cs.rizzerve.back_end_rizzerve.checkout.repository.CheckoutRepository;
 import id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_pesanan.model.Cart;
 import id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_pesanan.model.CartItem;
-import id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_pesanan.model.User;
+import id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_menu.model.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -28,11 +28,8 @@ class CheckoutServiceImplTest {
         checkoutRepository = mock(CheckoutRepository.class);
         checkoutService = new CheckoutServiceImpl(checkoutRepository);
 
-        User user = User.builder()
-                .id(1L)
-                .username("dummyuser")
-                .password("crazykiller")
-                .build();
+        User user = new User();
+        user.setId(1L);
 
         CartItem item1 = CartItem.builder()
                 .id(1L)

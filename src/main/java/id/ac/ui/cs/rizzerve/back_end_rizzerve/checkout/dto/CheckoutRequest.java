@@ -13,5 +13,6 @@ public class CheckoutRequest {
     private Long cartId;
 
     public void setCart(Cart dummyCart) {
+        this.cartId = dummyCart.getId();
     }
 }
