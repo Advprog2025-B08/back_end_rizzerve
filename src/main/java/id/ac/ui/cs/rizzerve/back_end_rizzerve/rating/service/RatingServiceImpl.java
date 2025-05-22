@@ -53,6 +53,7 @@ public class RatingServiceImpl implements RatingService {
     }
 
     @Override
+    @Transactional
     public Rating updateRating(RatingRequest request) {
         Rating existing = ratingRepository.findById(request.getId())
                 .orElseThrow(() -> new RuntimeException("Rating not found"));
@@ -64,6 +65,7 @@ public class RatingServiceImpl implements RatingService {
 
 
     @Override
+    @Transactional
     public void deleteRating(Long id) {
         Rating rating = ratingRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Rating not found"));
