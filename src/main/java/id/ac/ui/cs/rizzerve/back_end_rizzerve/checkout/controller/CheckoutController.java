@@ -35,6 +35,6 @@ public class CheckoutController {
                 .orElseThrow(() -> new RuntimeException("Cart not found")); // Jika cart tidak ditemukan, lempar exception
 
         // Panggil service untuk membuat checkout
-        return checkoutService.createCheckout(cart);
+        return checkoutService.createCheckout(cart.getId());
     }
 }

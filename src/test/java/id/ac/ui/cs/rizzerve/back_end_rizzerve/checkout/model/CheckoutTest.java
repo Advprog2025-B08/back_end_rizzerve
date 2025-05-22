@@ -48,7 +48,7 @@ public class CheckoutTest {
     @Test
     public void testCreateCheckoutWithValidCart() {
         Checkout checkout = Checkout.builder()
-                .userId(cart.getUserId())
+                .user(cart.getUser())
                 .cart(cart)
                 .totalPrice(expectedTotal)
                 .isSubmitted(true)
@@ -58,7 +58,7 @@ public class CheckoutTest {
         assertNotNull(checkout.getCart());
         assertEquals(2, checkout.getCart().getItems().size());
         assertEquals(expectedTotal, checkout.getTotalPrice());
-        assertEquals(1L, checkout.getUserId());
+        assertEquals(1L, checkout.getUser().getId());
         assertTrue(checkout.getIsSubmitted());
         assertNotNull(checkout.getCreatedAt());
     }
@@ -72,7 +72,7 @@ public class CheckoutTest {
                 .build();
 
         Checkout checkout = Checkout.builder()
-                .userId(emptyCart.getUserId())
+                .user(cart.getUser())
                 .cart(emptyCart)
                 .totalPrice(0)
                 .isSubmitted(false)
@@ -87,7 +87,7 @@ public class CheckoutTest {
     @Test
     public void testCheckoutCreatedAtIsNotNull() {
         Checkout checkout = Checkout.builder()
-                .userId(cart.getUserId())
+                .user(cart.getUser())
                 .cart(cart)
                 .totalPrice(expectedTotal)
                 .isSubmitted(false)
@@ -101,7 +101,7 @@ public class CheckoutTest {
     @Test
     public void testChangeIsSubmittedStatus() {
         Checkout checkout = Checkout.builder()
-                .userId(cart.getUserId())
+                .user(cart.getUser())
                 .cart(cart)
                 .totalPrice(expectedTotal)
                 .isSubmitted(false)

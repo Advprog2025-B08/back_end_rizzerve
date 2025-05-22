@@ -5,12 +5,14 @@ import id.ac.ui.cs.rizzerve.back_end_rizzerve.checkout.repository.CheckoutReposi
 import id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_pesanan.model.Cart;
 import id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_pesanan.model.CartItem;
 import id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_menu.model.User;
+import id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_pesanan.repository.CartRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -26,7 +28,8 @@ class CheckoutServiceImplTest {
     @BeforeEach
     void setUp() {
         checkoutRepository = mock(CheckoutRepository.class);
-        checkoutService = new CheckoutServiceImpl(checkoutRepository);
+        CartRepository cartRepository = mock(CartRepository.class);
+        checkoutService = new CheckoutServiceImpl(checkoutRepository, cartRepository);
 
         User user = new User();
         user.setId(1L);
@@ -53,7 +56,10 @@ class CheckoutServiceImplTest {
                 .items(List.of(item1, item2))
                 .build();
 
-        expectedTotal = 3; // Only calculate total items for now..
+        expectedTotal = 3;
+
+        when(cartRepository.findById(1L)).thenReturn(Optional.of(cart));
+        // Only calculate total items for now..
     }
 
     @Test
@@ -63,14 +69,14 @@ class CheckoutServiceImplTest {
                 .thenAnswer(invocation -> invocation.getArgument(0));
 
         // Act
-        Checkout checkout = checkoutService.createCheckout(cart);
+        Checkout checkout = checkoutService.createCheckout(cart.getId());
 
         // Assert
         assertNotNull(checkout);
-        assertEquals(cart.getUserId(), checkout.getUserId());
+        assertEquals(cart.getUserId(), checkout.getUser().getId());
         assertEquals(expectedTotal, checkout.getTotalPrice());
         assertEquals(cart.getItems().size(), checkout.getCart().getItems().size());
-        assertTrue(checkout.getIsSubmitted());
+        assertFalse(checkout.getIsSubmitted());
         assertNotNull(checkout.getCreatedAt());
 
         verify(checkoutRepository, times(1)).save(any(Checkout.class));

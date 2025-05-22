@@ -1,5 +1,6 @@
 package id.ac.ui.cs.rizzerve.back_end_rizzerve.checkout.model;
 
+import id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_menu.model.User;
 import id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_pesanan.model.Cart;
 import jakarta.persistence.*;
 import lombok.*;
@@ -19,11 +20,12 @@ public class Checkout {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "user_id")
-    private Long userId;
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", unique = true, nullable = false)
+    private User user;
 
     @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "cart_id")
+    @JoinColumn(name = "cart_id", unique = true, nullable = false)
     private Cart cart;
 
     @Column(name = "total_price")
