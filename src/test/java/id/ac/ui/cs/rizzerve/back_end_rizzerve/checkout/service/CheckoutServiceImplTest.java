@@ -18,6 +18,7 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -27,7 +28,6 @@ import static org.mockito.Mockito.*;
 class CheckoutServiceImplTest {
     private CheckoutRepository checkoutRepository;
     private CheckoutServiceImpl checkoutService;
-    private CartServiceImpl cartService;
     private CartRepository cartRepository;
     private CartItemRepository cartItemRepository;
     private MenuRepository menuRepository;
@@ -43,7 +43,6 @@ class CheckoutServiceImplTest {
         cartItemRepository = mock(CartItemRepository.class);
 
         checkoutService = new CheckoutServiceImpl(checkoutRepository, cartRepository);
-        cartService = new CartServiceImpl(cartRepository, cartItemRepository, menuRepository);
 
 
         User user = new User();
@@ -68,7 +67,7 @@ class CheckoutServiceImplTest {
                 .id(1L)
                 .userId(1L)
                 .user(user)
-                .items(List.of(item1, item2))
+                .items(new ArrayList<>(List.of(item1, item2)))
                 .build();
 
         expectedTotal = 3;
@@ -99,6 +98,8 @@ class CheckoutServiceImplTest {
 
     @Test
     void testUpdateCartItemQuantityIncreaseFromCheckout() {
+        when(checkoutRepository.save(any(Checkout.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
         // Arrange
         Checkout checkout = checkoutService.createCheckout(cart.getId());
         Cart checkoutCart = checkout.getCart();
@@ -121,6 +122,8 @@ class CheckoutServiceImplTest {
 
     @Test
     void testUpdateCartItemQuantityDecreaseToDeletionFromCheckout() {
+        when(checkoutRepository.save(any(Checkout.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
         // Arrange
         Checkout checkout = checkoutService.createCheckout(cart.getId());
         Cart checkoutCart = checkout.getCart();
@@ -143,6 +146,8 @@ class CheckoutServiceImplTest {
 
     @Test
     void testUpdateCartItemWithInvalidItem() {
+        when(checkoutRepository.save(any(Checkout.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
         // Arrange
         Checkout checkout = checkoutService.createCheckout(cart.getId());
         Cart checkoutCart = checkout.getCart();
@@ -174,8 +179,7 @@ class CheckoutServiceImplTest {
         checkoutService.deleteCheckout(checkoutId);
 
         // Assert
-        verify(checkoutRepository, times(1)).findById(checkoutId);
-        verify(checkoutRepository, times(1)).delete(checkout);
+        verify(checkoutRepository, times(1)).deleteById(checkoutId);
     }
 
 }
