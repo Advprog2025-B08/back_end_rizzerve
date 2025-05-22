@@ -7,10 +7,13 @@ import id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_pesanan.model.Cart;
 import id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_pesanan.repository.CartRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.validation.annotation.Validated;
 
 import jakarta.validation.Valid;
+
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/checkouts")
@@ -26,15 +29,14 @@ public class CheckoutController {
         this.cartRepository = cartRepository;
     }
 
-    // Endpoint untuk membuat checkout
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public Checkout createCheckout(@Valid @RequestBody CheckoutRequest checkoutRequest) {
-        // Cari cart berdasarkan cartId yang diterima
-        Cart cart = cartRepository.findById(checkoutRequest.getCartId())
-                .orElseThrow(() -> new RuntimeException("Cart not found")); // Jika cart tidak ditemukan, lempar exception
-
-        // Panggil service untuk membuat checkout
-        return checkoutService.createCheckout(cart.getId());
+    public ResponseEntity<?> createCheckout(@Valid @RequestBody CheckoutRequest checkoutRequest) {
+        Optional<Cart> optionalCart = cartRepository.findById(checkoutRequest.getCartId());
+        if (optionalCart.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Cart not found");
+        }
+        Checkout checkout = checkoutService.createCheckout(optionalCart.get().getId());
+        return ResponseEntity.status(HttpStatus.CREATED).body(checkout);
     }
 }
