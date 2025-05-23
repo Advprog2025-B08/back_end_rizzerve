@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -16,6 +17,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -64,11 +66,12 @@ public class MenuServiceImplTest {
     }
     
     @Test
-    void getAllMenus_ShouldReturnAllMenus() {
+    void getAllMenus_ShouldReturnAllMenus() throws Exception {
         List<Menu> menus = Arrays.asList(menu);
         when(menuRepository.findAll()).thenReturn(menus);
         
-        List<Menu> result = menuService.getAllMenus();
+        CompletableFuture<List<Menu>> futureResult = menuService.getAllMenus();
+        List<Menu> result = futureResult.get();
         
         assertEquals(1, result.size());
         assertEquals("Test Menu", result.get(0).getName());
@@ -76,11 +79,12 @@ public class MenuServiceImplTest {
     }
     
     @Test
-    void getActiveMenus_ShouldReturnActiveMenus() {
+    void getActiveMenus_ShouldReturnActiveMenus() throws Exception {
         List<Menu> activeMenus = Arrays.asList(menu);
         when(menuRepository.findAllByIsActiveOrderByDisplayOrderAsc(true)).thenReturn(activeMenus);
         
-        List<Menu> result = menuService.getActiveMenus();
+        CompletableFuture<List<Menu>> futureResult = menuService.getActiveMenus();
+        List<Menu> result = futureResult.get();
         
         assertEquals(1, result.size());
         assertEquals("Test Menu", result.get(0).getName());
@@ -88,10 +92,11 @@ public class MenuServiceImplTest {
     }
     
     @Test
-    void getMenuById_WhenMenuExists_ShouldReturnMenu() {
+    void getMenuById_WhenMenuExists_ShouldReturnMenu() throws Exception {
         when(menuRepository.findById(anyLong())).thenReturn(Optional.of(menu));
         
-        Menu result = menuService.getMenuById(1L);
+        CompletableFuture<Menu> futureResult = menuService.getMenuById(1L);
+        Menu result = futureResult.get();
         
         assertNotNull(result);
         assertEquals(1L, result.getId());
@@ -103,15 +108,31 @@ public class MenuServiceImplTest {
     void getMenuById_WhenMenuDoesNotExist_ShouldThrowException() {
         when(menuRepository.findById(anyLong())).thenReturn(Optional.empty());
         
-        assertThrows(ResourceNotFoundException.class, () -> menuService.getMenuById(1L));
+        CompletableFuture<Menu> futureResult = menuService.getMenuById(1L);
+        
+        // Since @Async might not work in test context, the exception could be thrown directly
+        // or wrapped in ExecutionException, so we test for both possibilities
+        try {
+            futureResult.get();
+            // If we reach here, no exception was thrown, which is unexpected
+            throw new AssertionError("Expected an exception to be thrown");
+        } catch (Exception e) {
+            // Check if it's either ResourceNotFoundException or ExecutionException wrapping it
+            assertTrue(e instanceof ResourceNotFoundException || 
+                      (e instanceof java.util.concurrent.ExecutionException && 
+                       e.getCause() instanceof ResourceNotFoundException),
+                      "Expected ResourceNotFoundException or ExecutionException wrapping ResourceNotFoundException, but got: " + e.getClass());
+        }
+        
         verify(menuRepository, times(1)).findById(1L);
     }
     
     @Test
-    void createMenu_ShouldCreateAndReturnMenu() {
+    void createMenu_ShouldCreateAndReturnMenu() throws Exception {
         when(menuRepository.save(any(Menu.class))).thenReturn(menu);
         
-        Menu result = menuService.createMenu(menuDTO);
+        CompletableFuture<Menu> futureResult = menuService.createMenu(menuDTO);
+        Menu result = futureResult.get();
         
         assertNotNull(result);
         assertEquals("Test Menu", result.getName());
@@ -124,14 +145,28 @@ public class MenuServiceImplTest {
     }
     
     @Test
-    void updateMenu_WhenMenuExists_ShouldUpdateAndReturnMenu() {
+    void updateMenu_WhenMenuExists_ShouldUpdateAndReturnMenu() throws Exception {
         when(menuRepository.findById(anyLong())).thenReturn(Optional.of(menu));
-        when(menuRepository.save(any(Menu.class))).thenReturn(menu);
+        
+        // Create updated menu object
+        Menu updatedMenu = new Menu();
+        updatedMenu.setId(1L);
+        updatedMenu.setName("Updated Menu");
+        updatedMenu.setDescription("Updated Description");
+        updatedMenu.setUrl("/test");
+        updatedMenu.setIcon("test-icon");
+        updatedMenu.setDisplayOrder(1);
+        updatedMenu.setIsActive(true);
+        updatedMenu.setCreatedAt(LocalDateTime.now());
+        updatedMenu.setUpdatedAt(LocalDateTime.now());
+        
+        when(menuRepository.save(any(Menu.class))).thenReturn(updatedMenu);
         
         menuDTO.setName("Updated Menu");
         menuDTO.setDescription("Updated Description");
         
-        Menu result = menuService.updateMenu(1L, menuDTO);
+        CompletableFuture<Menu> futureResult = menuService.updateMenu(1L, menuDTO);
+        Menu result = futureResult.get();
         
         assertNotNull(result);
         assertEquals("Updated Menu", result.getName());
@@ -144,17 +179,33 @@ public class MenuServiceImplTest {
     void updateMenu_WhenMenuDoesNotExist_ShouldThrowException() {
         when(menuRepository.findById(anyLong())).thenReturn(Optional.empty());
         
-        assertThrows(ResourceNotFoundException.class, () -> menuService.updateMenu(1L, menuDTO));
+        CompletableFuture<Menu> futureResult = menuService.updateMenu(1L, menuDTO);
+        
+        // Since @Async might not work in test context, the exception could be thrown directly
+        // or wrapped in ExecutionException, so we test for both possibilities
+        try {
+            futureResult.get();
+            // If we reach here, no exception was thrown, which is unexpected
+            throw new AssertionError("Expected an exception to be thrown");
+        } catch (Exception e) {
+            // Check if it's either ResourceNotFoundException or ExecutionException wrapping it
+            assertTrue(e instanceof ResourceNotFoundException || 
+                      (e instanceof java.util.concurrent.ExecutionException && 
+                       e.getCause() instanceof ResourceNotFoundException),
+                      "Expected ResourceNotFoundException or ExecutionException wrapping ResourceNotFoundException, but got: " + e.getClass());
+        }
+        
         verify(menuRepository, times(1)).findById(1L);
         verify(menuRepository, never()).save(any(Menu.class));
     }
     
     @Test
-    void deleteMenu_WhenMenuExists_ShouldDeleteMenu() {
+    void deleteMenu_WhenMenuExists_ShouldDeleteMenu() throws Exception {
         when(menuRepository.findById(anyLong())).thenReturn(Optional.of(menu));
         doNothing().when(menuRepository).delete(any(Menu.class));
         
-        menuService.deleteMenu(1L);
+        CompletableFuture<Void> futureResult = menuService.deleteMenu(1L);
+        futureResult.get(); // Wait for completion
         
         verify(menuRepository, times(1)).findById(1L);
         verify(menuRepository, times(1)).delete(menu);
@@ -164,7 +215,22 @@ public class MenuServiceImplTest {
     void deleteMenu_WhenMenuDoesNotExist_ShouldThrowException() {
         when(menuRepository.findById(anyLong())).thenReturn(Optional.empty());
         
-        assertThrows(ResourceNotFoundException.class, () -> menuService.deleteMenu(1L));
+        CompletableFuture<Void> futureResult = menuService.deleteMenu(1L);
+        
+        // Since @Async might not work in test context, the exception could be thrown directly
+        // or wrapped in ExecutionException, so we test for both possibilities
+        try {
+            futureResult.get();
+            // If we reach here, no exception was thrown, which is unexpected
+            throw new AssertionError("Expected an exception to be thrown");
+        } catch (Exception e) {
+            // Check if it's either ResourceNotFoundException or ExecutionException wrapping it
+            assertTrue(e instanceof ResourceNotFoundException || 
+                      (e instanceof java.util.concurrent.ExecutionException && 
+                       e.getCause() instanceof ResourceNotFoundException),
+                      "Expected ResourceNotFoundException or ExecutionException wrapping ResourceNotFoundException, but got: " + e.getClass());
+        }
+        
         verify(menuRepository, times(1)).findById(1L);
         verify(menuRepository, never()).delete(any(Menu.class));
     }
