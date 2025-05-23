@@ -8,12 +8,15 @@ import id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_menu.repository.MenuReposit
 import id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_menu.model.Menu;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Future;
 
 @Service
 public class CartServiceImpl implements CartService {
@@ -44,6 +47,7 @@ public class CartServiceImpl implements CartService {
 
     @Override
     @Transactional
+    @Async
     public CartItem addItemToCart(Long userId, Long menuId) {
         Menu menu = menuRepository.findById(menuId)
                 .orElseThrow(() -> new EntityNotFoundException("Menu not found with id: " + menuId));
@@ -69,6 +73,7 @@ public class CartServiceImpl implements CartService {
 
     @Override
     @Transactional
+    @Async
     public CartItem updateCartItemQuantity(Long userId, Long menuId, int quantityChange) {
         Cart cart = getOrCreateCart(userId);
 
@@ -88,6 +93,7 @@ public class CartServiceImpl implements CartService {
 
     @Override
     @Transactional
+    @Async
     public void removeItemFromCart(Long userId, Long menuId) {
         Cart cart = getOrCreateCart(userId);
 
@@ -99,6 +105,7 @@ public class CartServiceImpl implements CartService {
 
     @Override
     @Transactional(readOnly = true)
+    @Async
     public List<CartItem> getCartItems(Long userId) {
         Cart cart = getOrCreateCart(userId);
         return cart.getItems();
@@ -106,6 +113,7 @@ public class CartServiceImpl implements CartService {
 
     @Override
     @Transactional
+    @Async
     public void clearCart(Long userId) {
         Cart cart = getOrCreateCart(userId);
         cart.getItems().clear();
