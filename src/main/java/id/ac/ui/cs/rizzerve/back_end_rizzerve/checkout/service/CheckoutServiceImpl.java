@@ -6,6 +6,7 @@ import id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_pesanan.model.Cart;
 import id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_pesanan.model.CartItem;
 import id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_pesanan.repository.CartRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -32,6 +33,7 @@ public class CheckoutServiceImpl implements CheckoutService {
         return checkoutRepository.save(checkout);
     }
 
+    @Async
     @Override
     public void deleteCheckout(Long checkoutID) {
         Checkout checkout = checkoutRepository.findById(checkoutID)
