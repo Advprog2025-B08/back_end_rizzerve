@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -14,7 +15,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -62,9 +62,9 @@ public class MenuControllerTest {
     }
 
     @Test
-    void getAllActiveMenus_ShouldReturnActiveMenus() {
+    void getAllActiveMenus_ShouldReturnActiveMenus() throws Exception {
         List<Menu> menus = Arrays.asList(menu);
-        when(menuService.getActiveMenus()).thenReturn(menus);
+        when(menuService.getActiveMenus()).thenReturn(CompletableFuture.completedFuture(menus));
 
         ResponseEntity<List<Menu>> response = menuController.getAllActiveMenus();
 
@@ -75,9 +75,9 @@ public class MenuControllerTest {
     }
 
     @Test
-    void getAllMenus_ShouldReturnAllMenus() {
+    void getAllMenus_ShouldReturnAllMenus() throws Exception {
         List<Menu> menus = Arrays.asList(menu);
-        when(menuService.getAllMenus()).thenReturn(menus);
+        when(menuService.getAllMenus()).thenReturn(CompletableFuture.completedFuture(menus));
 
         ResponseEntity<List<Menu>> response = menuController.getAllMenus();
 
@@ -88,8 +88,8 @@ public class MenuControllerTest {
     }
 
     @Test
-    void getMenuById_ShouldReturnMenu() {
-        when(menuService.getMenuById(anyLong())).thenReturn(menu);
+    void getMenuById_ShouldReturnMenu() throws Exception {
+        when(menuService.getMenuById(anyLong())).thenReturn(CompletableFuture.completedFuture(menu));
 
         ResponseEntity<Menu> response = menuController.getMenuById(1L);
 
@@ -101,8 +101,8 @@ public class MenuControllerTest {
     }
 
     @Test
-    void createMenu_ShouldCreateAndReturnMenu() {
-        when(menuService.createMenu(any(MenuDTO.class))).thenReturn(menu);
+    void createMenu_ShouldCreateAndReturnMenu() throws Exception {
+        when(menuService.createMenu(any(MenuDTO.class))).thenReturn(CompletableFuture.completedFuture(menu));
 
         ResponseEntity<Menu> response = menuController.createMenu(menuDTO);
 
@@ -114,8 +114,8 @@ public class MenuControllerTest {
     }
 
     @Test
-    void updateMenu_ShouldUpdateAndReturnMenu() {
-        when(menuService.updateMenu(anyLong(), any(MenuDTO.class))).thenReturn(menu);
+    void updateMenu_ShouldUpdateAndReturnMenu() throws Exception {
+        when(menuService.updateMenu(anyLong(), any(MenuDTO.class))).thenReturn(CompletableFuture.completedFuture(menu));
 
         ResponseEntity<Menu> response = menuController.updateMenu(1L, menuDTO);
 
@@ -127,8 +127,8 @@ public class MenuControllerTest {
     }
 
     @Test
-    void deleteMenu_ShouldDeleteMenuAndReturnSuccessMessage() {
-        doNothing().when(menuService).deleteMenu(anyLong());
+    void deleteMenu_ShouldDeleteMenuAndReturnSuccessMessage() throws Exception {
+        when(menuService.deleteMenu(anyLong())).thenReturn(CompletableFuture.completedFuture(null));
 
         ResponseEntity<Map<String, String>> response = menuController.deleteMenu(1L);
 

@@ -3,6 +3,7 @@ package id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_menu.controller;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -35,36 +36,36 @@ public class MenuController {
     
     @GetMapping
     public ResponseEntity<List<Menu>> getAllActiveMenus() {
-        List<Menu> menus = menuService.getActiveMenus();
-        return ResponseEntity.ok(menus);
+        CompletableFuture<List<Menu>> menus = menuService.getActiveMenus();
+        return ResponseEntity.ok(menus.join());
     }
     
     @GetMapping("/admin")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<Menu>> getAllMenus() {
-        List<Menu> menus = menuService.getAllMenus();
-        return ResponseEntity.ok(menus);
+        CompletableFuture<List<Menu>> menus = menuService.getAllMenus();
+        return ResponseEntity.ok(menus.join());
     }
     
     @GetMapping("/admin/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Menu> getMenuById(@PathVariable Long id) {
-        Menu menu = menuService.getMenuById(id);
-        return ResponseEntity.ok(menu);
+        CompletableFuture<Menu> menus = menuService.getMenuById(id);
+        return ResponseEntity.ok(menus.join());
     }
     
     @PostMapping("/admin")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Menu> createMenu(@Valid @RequestBody MenuDTO menuDTO) {
-        Menu createdMenu = menuService.createMenu(menuDTO);
-        return new ResponseEntity<>(createdMenu, HttpStatus.CREATED);
+        CompletableFuture<Menu> createdMenu = menuService.createMenu(menuDTO);
+        return new ResponseEntity<>(createdMenu.join(), HttpStatus.CREATED);
     }
     
     @PutMapping("/admin/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Menu> updateMenu(@PathVariable Long id, @Valid @RequestBody MenuDTO menuDTO) {
-        Menu updatedMenu = menuService.updateMenu(id, menuDTO);
-        return ResponseEntity.ok(updatedMenu);
+        CompletableFuture<Menu> updatedMenu = menuService.updateMenu(id, menuDTO);
+        return ResponseEntity.ok(updatedMenu.join());
     }
     
     @DeleteMapping("/admin/{id}")

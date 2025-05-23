@@ -4,12 +4,13 @@ import id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_menu.dto.MenuDTO;
 import id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_menu.model.Menu;
 
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 public interface MenuService {
-    List<Menu> getAllMenus();
-    List<Menu> getActiveMenus();
-    Menu getMenuById(Long id);
-    Menu createMenu(MenuDTO menuDTO);
-    Menu updateMenu(Long id, MenuDTO menuDTO);
-    void deleteMenu(Long id);
+    CompletableFuture<List<Menu>> getAllMenus();
+    CompletableFuture<List<Menu>> getActiveMenus();
+    CompletableFuture<Menu> getMenuById(Long id);
+    CompletableFuture<Menu> createMenu(MenuDTO menuDTO);
+    CompletableFuture<Menu> updateMenu(Long id, MenuDTO menuDTO);
+    CompletableFuture<Void> deleteMenu(Long id);
 }
