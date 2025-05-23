@@ -28,10 +28,12 @@ public class SecurityConfig {
         http
             .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(auth -> auth
+                    .requestMatchers("OPTIONS", "/**").permitAll()
                     .requestMatchers("/api/auth/**").permitAll()
                     .requestMatchers("/api/menus/admin/**").hasRole("ADMIN")
                     .requestMatchers("/api/menus").permitAll()
-                    .requestMatchers("/meja/**").hasRole("ADMIN")
+                    .requestMatchers("/meja/admin/**").hasRole("ADMIN")
+                    .requestMatchers("/meja/user/**").permitAll()
                     .requestMatchers("/ratings/**").permitAll()
                     .requestMatchers("/").permitAll()
                     .requestMatchers("/login").permitAll()

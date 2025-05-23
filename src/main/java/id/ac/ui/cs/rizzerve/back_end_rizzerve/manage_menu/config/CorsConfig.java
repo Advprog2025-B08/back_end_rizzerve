@@ -1,5 +1,6 @@
 package id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_menu.config;
 
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
