@@ -43,15 +43,17 @@ public class RatingServiceImpl implements RatingService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        Rating rating = new Rating();
-        rating.setMenu(menu);
-        rating.setUser(user);
-        rating.setRatingValue(ratingValue);
+        Rating rating = new Rating.RatingBuilder()
+                .setUser(user)
+                .setMenu(menu)
+                .setRatingValue(ratingValue)
+                .build();
 
         ratingRepository.save(rating);
     }
 
     @Override
+    @Transactional
     public Rating updateRating(RatingRequest request) {
         Rating existing = ratingRepository.findById(request.getId())
                 .orElseThrow(() -> new RuntimeException("Rating not found"));
@@ -63,7 +65,10 @@ public class RatingServiceImpl implements RatingService {
 
 
     @Override
+    @Transactional
     public void deleteRating(Long id) {
+        Rating rating = ratingRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Rating not found"));
         ratingRepository.deleteById(id);
     }
 

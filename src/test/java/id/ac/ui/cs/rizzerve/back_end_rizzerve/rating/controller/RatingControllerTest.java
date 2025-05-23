@@ -98,6 +98,6 @@ class RatingControllerTest {
 
         mockMvc.perform(asyncDispatch(mvcResult))
                 .andExpect(status().isOk())
-                .andExpect(content().string("4.5"));
+                .andExpect(jsonPath("$.average").value(4.5));
     }
 }
