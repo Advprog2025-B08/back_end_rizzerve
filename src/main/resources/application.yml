@@ -1,9 +1,9 @@
 spring:
   datasource:
-    url: jdbc:postgresql://${SUPABASE_HOST}:${SUPABASE_PORT}/${SUPABASE_DATABASE}
+    url: jdbc:postgresql://${DB_HOST}:${DB_PORT}/${DB_NAME}
     driverClassName: org.postgresql.Driver
-    username: ${SUPABASE_USERNAME}
-    password: ${SUPABASE_PASSWORD}
+    username: ${DB_USER}
+    password: ${DB_PASSWORD}
   jpa:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
     hibernate:
@@ -16,3 +16,6 @@ jwt:
 
 server:
   port: 8080
+
+cors:
+  origin: http://localhost:3000
