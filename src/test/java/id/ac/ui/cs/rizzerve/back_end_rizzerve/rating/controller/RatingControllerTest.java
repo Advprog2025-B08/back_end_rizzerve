@@ -5,7 +5,6 @@ import id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_menu.model.Menu;
 import id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_menu.model.User;
 import id.ac.ui.cs.rizzerve.back_end_rizzerve.rating.model.Rating;
 import id.ac.ui.cs.rizzerve.back_end_rizzerve.rating.service.RatingService;
-import id.ac.ui.cs.rizzerve.back_end_rizzerve.rating.controller.RatingRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -57,16 +56,16 @@ class RatingControllerTest {
     @Test
     void testUpdateRating_shouldReturnUpdatedRating() throws Exception {
         User user = new User();
-        user.setId(2L); // Changed to match the userId in request
+        user.setId(2L);
         user.setUsername("dummyUser");
 
         Menu menu = new Menu();
         menu.setId(1L);
         menu.setName("Nasi Goreng");
         menu.setDescription("Enak dan pedas");
+        menu.setPrice(20000L);
 
         RatingRequest request = new RatingRequest();
-        // Removed the setId line as it might not exist in RatingRequest
         request.setMenuId(1L);
         request.setUserId(2L);
         request.setRatingValue(5);
