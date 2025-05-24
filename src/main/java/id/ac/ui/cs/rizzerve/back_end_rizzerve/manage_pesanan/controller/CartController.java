@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.context.request.async.DeferredResult;
 
 import java.util.List;
 
@@ -24,46 +25,142 @@ public class CartController {
     }
 
     @PostMapping("/{userId}/items/{menuId}")
-    public ResponseEntity<CartItem> addItemToCart(@PathVariable Long userId, @PathVariable Long menuId) {
-        CartCommand command = new AddToCartCommand(cartService, userId, menuId);
-        CartItem item = (CartItem) commandInvoker.executeCommand(command);
-        return new ResponseEntity<>(item, HttpStatus.CREATED);
+    public DeferredResult<ResponseEntity<CartItem>> addItemToCart(@PathVariable Long userId, @PathVariable Long menuId) {
+        DeferredResult<ResponseEntity<CartItem>> deferredResult = new DeferredResult<>(30000L);
+
+        // Set timeout handler
+        deferredResult.onTimeout(() -> {
+            deferredResult.setErrorResult(
+                    ResponseEntity.status(HttpStatus.REQUEST_TIMEOUT)
+                            .body("Request timeout - operation took too long")
+            );
+        });
+
+        // Execute async operation
+        cartService.addItemToCartAsync(userId, menuId)
+                .thenAccept(item -> {
+                    deferredResult.setResult(new ResponseEntity<>(item, HttpStatus.CREATED));
+                })
+                .exceptionally(ex -> {
+                    deferredResult.setErrorResult(
+                            ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                                    .body("Error adding item to cart: " + ex.getMessage())
+                    );
+                    return null;
+                });
+
+        return deferredResult;
     }
 
     @PutMapping("/{userId}/items/{menuId}")
-    public ResponseEntity<?> updateCartItem(
+    public DeferredResult<ResponseEntity<?>> updateCartItem(
             @PathVariable Long userId,
             @PathVariable Long menuId,
             @RequestParam int quantityChange) {
 
-        CartCommand command = new UpdateCartCommand(cartService, userId, menuId, quantityChange);
-        CartItem item = (CartItem) commandInvoker.executeCommand(command);
+        DeferredResult<ResponseEntity<?>> deferredResult = new DeferredResult<>(30000L);
 
-        if (item == null) {
-            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-        }
+        deferredResult.onTimeout(() -> {
+            deferredResult.setErrorResult(
+                    ResponseEntity.status(HttpStatus.REQUEST_TIMEOUT)
+                            .body("Request timeout - operation took too long")
+            );
+        });
 
-        return new ResponseEntity<>(item, HttpStatus.OK);
+        cartService.updateCartItemQuantityAsync(userId, menuId, quantityChange)
+                .thenAccept(item -> {
+                    if (item == null) {
+                        deferredResult.setResult(new ResponseEntity<>(HttpStatus.NO_CONTENT));
+                    } else {
+                        deferredResult.setResult(new ResponseEntity<>(item, HttpStatus.OK));
+                    }
+                })
+                .exceptionally(ex -> {
+                    deferredResult.setErrorResult(
+                            ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                                    .body("Error updating cart item: " + ex.getMessage())
+                    );
+                    return null;
+                });
+
+        return deferredResult;
     }
 
     @DeleteMapping("/{userId}/items/{menuId}")
-    public ResponseEntity<Void> removeItemFromCart(@PathVariable Long userId, @PathVariable Long menuId) {
-        CartCommand command = new RemoveFromCartCommand(cartService, userId, menuId);
-        commandInvoker.executeCommand(command);
-        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    public DeferredResult<ResponseEntity<Void>> removeItemFromCart(@PathVariable Long userId, @PathVariable Long menuId) {
+        DeferredResult<ResponseEntity<Void>> deferredResult = new DeferredResult<>(30000L);
+
+        deferredResult.onTimeout(() -> {
+            deferredResult.setErrorResult(
+                    ResponseEntity.status(HttpStatus.REQUEST_TIMEOUT)
+                            .body("Request timeout - operation took too long")
+            );
+        });
+
+        cartService.removeItemFromCartAsync(userId, menuId)
+                .thenRun(() -> {
+                    deferredResult.setResult(new ResponseEntity<>(HttpStatus.NO_CONTENT));
+                })
+                .exceptionally(ex -> {
+                    deferredResult.setErrorResult(
+                            ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                                    .body("Error removing item from cart: " + ex.getMessage())
+                    );
+                    return null;
+                });
+
+        return deferredResult;
     }
 
     @GetMapping("/{userId}/items")
-    public ResponseEntity<List<CartItem>> getCartItems(@PathVariable Long userId) {
-        CartCommand command = new GetCartItemsCommand(cartService, userId);
-        List<CartItem> items = (List<CartItem>) commandInvoker.executeCommand(command);
-        return new ResponseEntity<>(items, HttpStatus.OK);
+    public DeferredResult<ResponseEntity<List<CartItem>>> getCartItems(@PathVariable Long userId) {
+        DeferredResult<ResponseEntity<List<CartItem>>> deferredResult = new DeferredResult<>(30000L);
+
+        deferredResult.onTimeout(() -> {
+            deferredResult.setErrorResult(
+                    ResponseEntity.status(HttpStatus.REQUEST_TIMEOUT)
+                            .body("Request timeout - operation took too long")
+            );
+        });
+
+        cartService.getCartItemsAsync(userId)
+                .thenAccept(items -> {
+                    deferredResult.setResult(new ResponseEntity<>(items, HttpStatus.OK));
+                })
+                .exceptionally(ex -> {
+                    deferredResult.setErrorResult(
+                            ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                                    .body("Error getting cart items: " + ex.getMessage())
+                    );
+                    return null;
+                });
+
+        return deferredResult;
     }
 
     @DeleteMapping("/{userId}")
-    public ResponseEntity<Void> clearCart(@PathVariable Long userId) {
-        CartCommand command = new ClearCartCommand(cartService, userId);
-        commandInvoker.executeCommand(command);
-        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    public DeferredResult<ResponseEntity<Void>> clearCart(@PathVariable Long userId) {
+        DeferredResult<ResponseEntity<Void>> deferredResult = new DeferredResult<>(30000L);
+
+        deferredResult.onTimeout(() -> {
+            deferredResult.setErrorResult(
+                    ResponseEntity.status(HttpStatus.REQUEST_TIMEOUT)
+                            .body("Request timeout - operation took too long")
+            );
+        });
+
+        cartService.clearCartAsync(userId)
+                .thenRun(() -> {
+                    deferredResult.setResult(new ResponseEntity<>(HttpStatus.NO_CONTENT));
+                })
+                .exceptionally(ex -> {
+                    deferredResult.setErrorResult(
+                            ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                                    .body("Error clearing cart: " + ex.getMessage())
+                    );
+                    return null;
+                });
+
+        return deferredResult;
     }
 }
