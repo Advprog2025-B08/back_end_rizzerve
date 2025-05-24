@@ -16,11 +16,28 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Build Docker image
-        run: docker build -t rizzerve-app .
+      - name: Generate version tags
+        id: version
+        run: |
+          SHORT_SHA=$(echo $GITHUB_SHA | cut -c1-8)
+          TIMESTAMP=$(date +%Y%m%d-%H%M%S)
+          echo "short_sha=$SHORT_SHA" >> $GITHUB_OUTPUT
+          echo "timestamp=$TIMESTAMP" >> $GITHUB_OUTPUT
+          echo "version_tag=v$TIMESTAMP-$SHORT_SHA" >> $GITHUB_OUTPUT
+
+      - name: Build Docker image with multiple tags
+        run: |
+          docker build -t rizzerve-app:latest .
+          docker tag rizzerve-app:latest rizzerve-app:${{ steps.version.outputs.short_sha }}
+          docker tag rizzerve-app:latest rizzerve-app:${{ steps.version.outputs.version_tag }}
 
       - name: Save Docker image to archive
-        run: docker save rizzerve-app > rizzerve-app.tar
+        run: |
+          docker save \
+            rizzerve-app:latest \
+            rizzerve-app:${{ steps.version.outputs.short_sha }} \
+            rizzerve-app:${{ steps.version.outputs.version_tag }} \
+            > rizzerve-app.tar
 
       - name: Copy image to EC2
         uses: appleboy/scp-action@master
@@ -45,10 +62,18 @@ jobs:
             DB_NAME=${{ secrets.DB_NAME }}
             DB_USER=${{ secrets.DB_USER }}
             DB_PASSWORD=${{ secrets.DB_PASSWORD }}
+            SPRING_PROFILES_ACTIVE=staging
+            DEPLOY_TIME=$(date '+%Y-%m-%d %H:%M:%S')
+            COMMIT_SHA=${{ steps.version.outputs.short_sha }}
+            VERSION_TAG=${{ steps.version.outputs.version_tag }}
+            GITHUB_RUN_ID=${{ github.run_id }}
             EOF
             
             # Secure the environment file
             chmod 600 /home/ec2-user/.env
+            
+            # Create deployment history directory
+            mkdir -p /home/ec2-user/deployments
 
       - name: Deploy Docker container
         uses: appleboy/ssh-action@master
@@ -57,17 +82,85 @@ jobs:
           username: ${{ secrets.USERNAME }}
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
+            echo "=== Starting Deployment ==="
+            echo "Version: ${{ steps.version.outputs.version_tag }}"
+            echo "Commit: ${{ steps.version.outputs.short_sha }}"
+            echo "Timestamp: $(date)"
+            
+            # Save current deployment info for rollback purposes
+            if docker ps -q -f name=rizzerve; then
+              CURRENT_IMAGE=$(docker inspect rizzerve --format='{{.Config.Image}}')
+              echo "Backing up current deployment: $CURRENT_IMAGE"
+            
+              cat > /home/ec2-user/deployments/previous.info << EOF
+            PREVIOUS_IMAGE=$CURRENT_IMAGE
+            BACKUP_TIME=$(date '+%Y-%m-%d %H:%M:%S')
+            BACKUP_FROM_DEPLOYMENT=${{ github.run_id }}
+            EOF
+            fi
+            
             # Load the new Docker image
+            echo "Loading new Docker images..."
             docker load < ~/rizzerve-app.tar
             
+            # Verify images were loaded
+            echo "Available images after load:"
+            docker images rizzerve-app --format "table {{.Tag}}\t{{.CreatedAt}}\t{{.Size}}"
+            
             # Stop and remove existing container
+            echo "Stopping existing container..."
             docker stop rizzerve || true
             docker rm rizzerve || true
             
             # Run new container with environment file
+            echo "Starting new container..."
             docker run -d \
               --name rizzerve \
               -p 80:8080 \
               --env-file /home/ec2-user/.env \
               --restart unless-stopped \
-              rizzerve-app
+              rizzerve-app:latest
+            
+            # Wait for container to start
+            sleep 15
+            
+            # Health check
+            echo "Performing health check..."
+            for i in {1..20}; do
+              if curl -f -s http://localhost:8080/actuator/health > /dev/null 2>&1; then
+                echo "✅ Deployment successful! Application is healthy."
+            
+                # Save successful deployment info
+                cat > /home/ec2-user/deployments/current.info << EOF
+            CURRENT_IMAGE=rizzerve-app:latest
+            VERSION_TAG=${{ steps.version.outputs.version_tag }}
+            COMMIT_SHA=${{ steps.version.outputs.short_sha }}
+            DEPLOY_TIME=$(date '+%Y-%m-%d %H:%M:%S')
+            GITHUB_RUN_ID=${{ github.run_id }}
+            HEALTH_CHECK_PASSED=true
+            EOF
+            
+                echo "Application accessible at: http://${{ secrets.STAGING_HOST_DNS }}"
+            
+                # Clean up deployment tar file
+                rm ~/rizzerve-app.tar
+            
+                # Keep only the 5 most recent images (don't prune all)
+                echo "Cleaning up old images (keeping 5 most recent)..."
+                docker images rizzerve-app --format "{{.Tag}} {{.CreatedAt}}" | \
+                grep -v "latest" | \
+                sort -k2 -r | \
+                tail -n +6 | \
+                awk '{print $1}' | \
+                xargs -I {} docker rmi rizzerve-app:{} 2>/dev/null || true
+            
+                exit 0
+              fi
+              echo "Health check attempt $i/20 - waiting 15 seconds..."
+              sleep 15
+            done
+            
+            echo "❌ Deployment failed - health check timeout"
+            echo "Container logs:"
+            docker logs --tail 30 rizzerve
+            exit 1
