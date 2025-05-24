@@ -128,15 +128,16 @@ class CartServiceImplTest {
     void testGetCartItems() {
         List<CartItem> items = new ArrayList<>();
         items.add(cartItem);
-        cart.setItems(items);
 
         when(cartRepository.findByUserId(anyLong())).thenReturn(Optional.of(cart));
+        when(cartItemRepository.findAllByCartIdWithMenu(anyLong())).thenReturn(items);
 
         List<CartItem> result = cartService.getCartItems(1L);
 
         assertNotNull(result);
         assertEquals(1, result.size());
         assertEquals(1L, result.get(0).getMenuId());
+        verify(cartItemRepository, times(1)).findAllByCartIdWithMenu(1L);
     }
 
     @Test
