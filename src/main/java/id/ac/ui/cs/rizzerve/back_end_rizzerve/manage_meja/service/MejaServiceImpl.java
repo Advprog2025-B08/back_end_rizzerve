@@ -117,7 +117,11 @@ public class MejaServiceImpl implements MejaService {
             meja.getCart().getItems().forEach(item -> {
                 CartItemDTO itemDTO = new CartItemDTO(item);
                 itemDTO.setId(item.getId());
-                itemDTO.setMenuId(item.getMenu().getId());
+                if (item.getMenu() != null) {
+                    itemDTO.setMenuId(item.getMenu().getId());
+                } else {
+                    itemDTO.setMenuId(item.getMenuId());
+                }
                 itemDTO.setQuantity(item.getQuantity());
                 itemDTOs.add(itemDTO);
             });
