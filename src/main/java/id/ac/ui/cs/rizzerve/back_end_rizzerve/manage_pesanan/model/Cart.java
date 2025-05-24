@@ -30,6 +30,7 @@ public class Cart {
 
     // Relasi ke CartItem - bidirectional
     @OneToMany(mappedBy = "cart", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @Builder.Default
     private List<CartItem> items = new ArrayList<>();
 
 }

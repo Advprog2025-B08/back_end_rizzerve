@@ -24,6 +24,9 @@ public class Menu {
     
     @Column
     private String description;
+
+    @Column(nullable = false)
+    private Long price;
     
     @Column
     private String url;
@@ -60,6 +63,12 @@ public class Menu {
     }
     public void setDescription(String description) {
         this.description = description;
+    }
+    public long getPrice() {
+        return price;
+    }
+    public void setPrice(long price) {
+        this.price = price;
     }
     public String getUrl() {
         return url;
