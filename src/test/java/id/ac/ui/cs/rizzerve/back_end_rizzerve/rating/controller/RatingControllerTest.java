@@ -5,6 +5,7 @@ import id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_menu.model.Menu;
 import id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_menu.model.User;
 import id.ac.ui.cs.rizzerve.back_end_rizzerve.rating.model.Rating;
 import id.ac.ui.cs.rizzerve.back_end_rizzerve.rating.service.RatingService;
+import id.ac.ui.cs.rizzerve.back_end_rizzerve.rating.controller.RatingRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;

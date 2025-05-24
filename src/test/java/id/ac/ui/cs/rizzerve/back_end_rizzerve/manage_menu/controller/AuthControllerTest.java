@@ -10,6 +10,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.anyLong;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import static org.mockito.Mockito.mock;
@@ -36,6 +37,7 @@ import id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_menu.dto.LoginRequest;
 import id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_menu.dto.RegisterRequest;
 import id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_menu.repository.UserRepository;
 import id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_menu.security.JwtUtil;
+import id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_pesanan.service.CartService;
 
 @ExtendWith(MockitoExtension.class)
 public class AuthControllerTest {
@@ -54,6 +56,9 @@ public class AuthControllerTest {
     
     @Mock
     private Authentication authentication;
+
+    @Mock
+    private CartService cartService;
 
     @InjectMocks
     private AuthController authController;
@@ -89,14 +94,17 @@ public class AuthControllerTest {
         when(userRepository.findByUsername(anyString())).thenReturn(Optional.empty());
         when(passwordEncoder.encode(anyString())).thenReturn("encodedPassword");
         when(userRepository.save(any(id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_menu.model.User.class))).thenReturn(userModel);
+        // Mock cartService to avoid NullPointerException
+        when(cartService.getOrCreateCart(anyLong())).thenReturn(null); // or return appropriate Cart object
 
         ResponseEntity<?> response = authController.registerUser(registerRequest);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals("User registered successfully", response.getBody());
+        assertEquals("User registered successfully with cart created", response.getBody());
         verify(userRepository, times(1)).findByUsername("testuser");
         verify(passwordEncoder, times(1)).encode("password");
         verify(userRepository, times(1)).save(any(id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_menu.model.User.class));
+        verify(cartService, times(1)).getOrCreateCart(1L);
     }
 
     @Test
@@ -110,6 +118,7 @@ public class AuthControllerTest {
         verify(userRepository, times(1)).findByUsername("testuser");
         verify(passwordEncoder, never()).encode(anyString());
         verify(userRepository, never()).save(any(id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_menu.model.User.class));
+        verify(cartService, never()).getOrCreateCart(anyLong());
     }
 
     @Test
