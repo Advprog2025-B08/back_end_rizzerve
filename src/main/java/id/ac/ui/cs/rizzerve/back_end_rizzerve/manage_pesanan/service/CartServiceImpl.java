@@ -8,12 +8,14 @@ import id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_menu.repository.MenuReposit
 import id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_menu.model.Menu;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 
 @Service
 public class CartServiceImpl implements CartService {
@@ -29,6 +31,7 @@ public class CartServiceImpl implements CartService {
         this.menuRepository = menuRepository;
     }
 
+    // Synchronous methods for internal use
     @Override
     @Transactional
     public Cart getOrCreateCart(Long userId) {
@@ -110,5 +113,71 @@ public class CartServiceImpl implements CartService {
         Cart cart = getOrCreateCart(userId);
         cart.getItems().clear();
         cartRepository.save(cart);
+    }
+
+    // Asynchronous methods for external API
+    @Override
+    @Async("asyncCartExecutor")
+    public CompletableFuture<CartItem> addItemToCartAsync(Long userId, Long menuId) {
+        try {
+            CartItem result = addItemToCart(userId, menuId);
+            return CompletableFuture.completedFuture(result);
+        } catch (Exception e) {
+            CompletableFuture<CartItem> future = new CompletableFuture<>();
+            future.completeExceptionally(e);
+            return future;
+        }
+    }
+
+    @Override
+    @Async("asyncCartExecutor")
+    public CompletableFuture<CartItem> updateCartItemQuantityAsync(Long userId, Long menuId, int quantityChange) {
+        try {
+            CartItem result = updateCartItemQuantity(userId, menuId, quantityChange);
+            return CompletableFuture.completedFuture(result);
+        } catch (Exception e) {
+            CompletableFuture<CartItem> future = new CompletableFuture<>();
+            future.completeExceptionally(e);
+            return future;
+        }
+    }
+
+    @Override
+    @Async("asyncCartExecutor")
+    public CompletableFuture<Void> removeItemFromCartAsync(Long userId, Long menuId) {
+        try {
+            removeItemFromCart(userId, menuId);
+            return CompletableFuture.completedFuture(null);
+        } catch (Exception e) {
+            CompletableFuture<Void> future = new CompletableFuture<>();
+            future.completeExceptionally(e);
+            return future;
+        }
+    }
+
+    @Override
+    @Async("asyncCartExecutor")
+    public CompletableFuture<List<CartItem>> getCartItemsAsync(Long userId) {
+        try {
+            List<CartItem> result = getCartItems(userId);
+            return CompletableFuture.completedFuture(result);
+        } catch (Exception e) {
+            CompletableFuture<List<CartItem>> future = new CompletableFuture<>();
+            future.completeExceptionally(e);
+            return future;
+        }
+    }
+
+    @Override
+    @Async("asyncCartExecutor")
+    public CompletableFuture<Void> clearCartAsync(Long userId) {
+        try {
+            clearCart(userId);
+            return CompletableFuture.completedFuture(null);
+        } catch (Exception e) {
+            CompletableFuture<Void> future = new CompletableFuture<>();
+            future.completeExceptionally(e);
+            return future;
+        }
     }
 }

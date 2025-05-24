@@ -37,6 +37,8 @@ dependencies {
 	implementation("io.github.cdimascio:dotenv-java:3.0.0")
 	implementation ("me.paulschwarz:spring-dotenv:4.0.0")
 	implementation("io.jsonwebtoken:jjwt-api:0.11.5")
+	implementation("org.springframework.retry:spring-retry:2.0.1")
+	implementation("org.springframework.boot:spring-boot-starter-aop")
 	runtimeOnly("io.jsonwebtoken:jjwt-impl:0.11.5")
 	runtimeOnly("io.jsonwebtoken:jjwt-jackson:0.11.5")
 	runtimeOnly("org.postgresql:postgresql")
