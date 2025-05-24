@@ -7,6 +7,8 @@ import id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_pesanan.repository.CartRepo
 import id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_menu.repository.MenuRepository;
 import id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_menu.model.Menu;
 import jakarta.persistence.EntityNotFoundException;
+
+import org.hibernate.Hibernate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
@@ -104,7 +106,7 @@ public class CartServiceImpl implements CartService {
     @Transactional(readOnly = true)
     public List<CartItem> getCartItems(Long userId) {
         Cart cart = getOrCreateCart(userId);
-        return cart.getItems();
+        return cartItemRepository.findAllByCartIdWithMenu(cart.getId());
     }
 
     @Override

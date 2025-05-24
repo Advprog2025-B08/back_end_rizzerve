@@ -10,16 +10,20 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.web.context.WebApplicationContext;
 
 import java.util.concurrent.CompletableFuture;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 
 class RatingControllerTest {
 
@@ -53,7 +57,7 @@ class RatingControllerTest {
     @Test
     void testUpdateRating_shouldReturnUpdatedRating() throws Exception {
         User user = new User();
-        user.setId(1L);
+        user.setId(2L); // Changed to match the userId in request
         user.setUsername("dummyUser");
 
         Menu menu = new Menu();
@@ -62,18 +66,24 @@ class RatingControllerTest {
         menu.setDescription("Enak dan pedas");
 
         RatingRequest request = new RatingRequest();
-        request.setId(10L);
+        // Removed the setId line as it might not exist in RatingRequest
         request.setMenuId(1L);
         request.setUserId(2L);
         request.setRatingValue(5);
 
-        Rating updatedRating = new Rating.RatingBuilder().setId(10L).setUser(user).setMenu(menu).setRatingValue(5).build();
+        Rating updatedRating = new Rating.RatingBuilder()
+                .setId(10L)
+                .setUser(user)
+                .setMenu(menu)
+                .setRatingValue(5)
+                .build();
 
         Mockito.when(ratingService.updateRating(any(RatingRequest.class))).thenReturn(updatedRating);
 
         mockMvc.perform(put("/ratings")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
+                .andDo(print()) // Add this for debugging
                 .andExpect(status().isOk())
                 .andExpect(content().json(objectMapper.writeValueAsString(updatedRating)));
     }

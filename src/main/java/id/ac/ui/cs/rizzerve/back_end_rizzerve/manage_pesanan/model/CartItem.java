@@ -1,5 +1,7 @@
 package id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_pesanan.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_menu.model.Menu;
 import lombok.*;
 
@@ -30,6 +32,7 @@ public class CartItem {
     // Relasi ke Cart - read-only karena kita mengelola foreign key secara manual
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "cart_id", insertable = false, updatable = false)
+    @JsonIgnore
     private Cart cart;
 
     // Relasi ke Menu - read-only karena kita mengelola foreign key secara manual
