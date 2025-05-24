@@ -8,15 +8,17 @@ public class MenuDTO {
     @NotBlank(message = "Menu name is required")
     private String name;
     private String description;
+    private long price;
     private String url;
     private String icon;
     private Integer displayOrder;
     private Boolean isActive = true;
 
-    public MenuDTO(Long id, String name, String description, String url, String icon, Integer displayOrder, Boolean isActive) {
+    public MenuDTO(Long id, String name, String description, long price, String url, String icon, Integer displayOrder, Boolean isActive) {
         this.id = id;
         this.name = name;
         this.description = description;
+        this.price = price; 
         this.url = url;
         this.icon = icon;
         this.displayOrder = displayOrder;
@@ -41,6 +43,12 @@ public class MenuDTO {
     }
     public void setDescription(String description) {
         this.description = description;
+    }
+    public long getPrice() {
+        return price;
+    }
+    public void setPrice(long price) {
+        this.price = price;
     }
     public String getUrl() {
         return url;

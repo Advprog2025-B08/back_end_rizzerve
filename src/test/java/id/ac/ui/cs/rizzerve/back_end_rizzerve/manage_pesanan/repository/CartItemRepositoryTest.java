@@ -37,6 +37,7 @@ class CartItemRepositoryTest {
         Menu menu = new Menu();
         menu.setName("Test Menu");
         menu.setDescription("Test Description");
+        menu.setPrice(15000);
         entityManager.persist(menu);
         entityManager.flush();
 
@@ -79,6 +80,7 @@ class CartItemRepositoryTest {
         Menu menu = new Menu();
         menu.setName("Test Menu");
         menu.setDescription("Test Description");
+        menu.setPrice(15000);
         entityManager.persist(menu);
         entityManager.flush();
 
@@ -112,6 +114,7 @@ class CartItemRepositoryTest {
         Menu menu = new Menu();
         menu.setName("Test Menu");
         menu.setDescription("Test Description");
+        menu.setPrice(15000);
         entityManager.persist(menu);
         entityManager.flush();
 

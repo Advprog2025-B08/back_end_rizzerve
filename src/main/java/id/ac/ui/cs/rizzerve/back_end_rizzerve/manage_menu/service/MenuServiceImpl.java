@@ -60,6 +60,7 @@ public class MenuServiceImpl implements MenuService {
         menu.setName(menuDTO.getName());
         menu.setDescription(menuDTO.getDescription());
         menu.setUrl(menuDTO.getUrl());
+        menu.setPrice(menuDTO.getPrice());
         menu.setIcon(menuDTO.getIcon());
         menu.setDisplayOrder(menuDTO.getDisplayOrder());
         menu.setIsActive(menuDTO.getIsActive());
@@ -79,6 +80,7 @@ public class MenuServiceImpl implements MenuService {
             existing.setName(menuDTO.getName());
             existing.setDescription(menuDTO.getDescription());
             existing.setUrl(menuDTO.getUrl());
+            existing.setPrice(menuDTO.getPrice());
             existing.setIcon(menuDTO.getIcon());
             existing.setDisplayOrder(menuDTO.getDisplayOrder());
             existing.setIsActive(menuDTO.getIsActive());
