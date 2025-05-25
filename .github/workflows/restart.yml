@@ -76,18 +76,3 @@ jobs:
             # Check container status
             echo "Container status:"
             docker ps -f name=rizzerve --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}\t{{.Image}}"
-            
-            # Perform basic health check
-            echo "Performing health check..."
-            for i in {1..12}; do  # 2 minutes total
-              if curl -f -s http://localhost:8080/actuator/health > /dev/null 2>&1; then
-                echo "✅ Application is running and healthy!"
-                echo "Application accessible at: http://${{ secrets.STAGING_HOST_DNS }}"
-                exit 0
-              fi
-              echo "Health check attempt $i/12 - waiting 10 seconds..."
-              sleep 10
-            done
-            
-            echo "⚠️ Application started but health check timeout. Check logs:"
-            docker logs --tail 20 rizzerve

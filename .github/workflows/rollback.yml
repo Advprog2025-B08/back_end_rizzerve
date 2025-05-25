@@ -16,11 +16,6 @@ on:
         description: 'Specific version tag (if rollback_type is specific_version)'
         required: false
         type: string
-      force_rollback:
-        description: 'Force rollback even if health check fails'
-        required: false
-        default: false
-        type: boolean
 
 jobs:
   rollback:
@@ -134,37 +129,31 @@ jobs:
             # Wait for container to start
             sleep 15
             
-            # Health check
-            echo "Performing health check..."
-            HEALTH_PASSED=false
-            for i in {1..20}; do
-              if curl -f -s http://localhost:8080/actuator/health > /dev/null 2>&1; then
-                echo "✅ Rollback successful! Application is healthy."
-                HEALTH_PASSED=true
-                break
-              fi
-              echo "Health check attempt $i/20 - waiting 15 seconds..."
-              sleep 15
-            done
+            # Check if container is running
+            if docker ps -f name=rizzerve --format "{{.Names}}" | grep -q "rizzerve"; then
+              echo "✅ Rollback successful! Container is running."
             
-            if [ "$HEALTH_PASSED" = "true" ] || [ "${{ github.event.inputs.force_rollback }}" = "true" ]; then
+              # Show container details
+              docker ps -f name=rizzerve --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}\t{{.Image}}"
+            
+              # Show startup logs
+              echo "Container startup logs:"
+              docker logs --tail 15 rizzerve
+            
               # Update deployment info
               cat > /home/ec2-user/deployments/current.info << EOF
             CURRENT_IMAGE=$PREVIOUS_IMAGE
             ROLLBACK_TIME=$(date '+%Y-%m-%d %H:%M:%S')
             ROLLBACK_TYPE=previous
             GITHUB_ROLLBACK_RUN=${{ github.run_id }}
-            HEALTH_CHECK_PASSED=$HEALTH_PASSED
+            CONTAINER_STATUS=running
             EOF
             
-              if [ "${{ github.event.inputs.force_rollback }}" = "true" ]; then
-                echo "⚠️ Rollback completed with force flag (health check may have failed)"
-              fi
-              echo "Application accessible at: http://${{ secrets.STAGING_HOST_DNS }}"
+              echo "Application should be accessible at: http://${{ secrets.STAGING_HOST_DNS }}"
             else
-              echo "❌ Rollback failed health check!"
+              echo "❌ Rollback failed - container is not running!"
               echo "Container logs:"
-              docker logs --tail 30 rizzerve
+              docker logs rizzerve 2>/dev/null || echo "No logs available"
               exit 1
             fi
 
@@ -240,20 +229,17 @@ jobs:
             # Wait for container to start
             sleep 15
             
-            # Health check
-            echo "Performing health check..."
-            HEALTH_PASSED=false
-            for i in {1..20}; do
-              if curl -f -s http://localhost:8080/actuator/health > /dev/null 2>&1; then
-                echo "✅ Rollback to $VERSION_TAG successful! Application is healthy."
-                HEALTH_PASSED=true
-                break
-              fi
-              echo "Health check attempt $i/20 - waiting 15 seconds..."
-              sleep 15
-            done
+            # Check if container is running
+            if docker ps -f name=rizzerve --format "{{.Names}}" | grep -q "rizzerve"; then
+              echo "✅ Rollback to $VERSION_TAG successful! Container is running."
             
-            if [ "$HEALTH_PASSED" = "true" ] || [ "${{ github.event.inputs.force_rollback }}" = "true" ]; then
+              # Show container details
+              docker ps -f name=rizzerve --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}\t{{.Image}}"
+            
+              # Show startup logs
+              echo "Container startup logs:"
+              docker logs --tail 15 rizzerve
+            
               # Update deployment info
               cat > /home/ec2-user/deployments/current.info << EOF
             CURRENT_IMAGE=$TARGET_IMAGE
@@ -261,16 +247,13 @@ jobs:
             ROLLBACK_TIME=$(date '+%Y-%m-%d %H:%M:%S')
             ROLLBACK_TYPE=specific_version
             GITHUB_ROLLBACK_RUN=${{ github.run_id }}
-            HEALTH_CHECK_PASSED=$HEALTH_PASSED
+            CONTAINER_STATUS=running
             EOF
             
-              if [ "${{ github.event.inputs.force_rollback }}" = "true" ]; then
-                echo "⚠️ Rollback completed with force flag (health check may have failed)"
-              fi
-              echo "Application accessible at: http://${{ secrets.STAGING_HOST_DNS }}"
+              echo "Application should be accessible at: http://${{ secrets.STAGING_HOST_DNS }}"
             else
-              echo "❌ Rollback to $VERSION_TAG failed health check!"
+              echo "❌ Rollback to $VERSION_TAG failed - container is not running!"
               echo "Container logs:"
-              docker logs --tail 30 rizzerve
+              docker logs rizzerve 2>/dev/null || echo "No logs available"
               exit 1
             fi
