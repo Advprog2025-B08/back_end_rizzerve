@@ -34,41 +34,41 @@ public class MenuController {
         this.menuService = menuService;
     }
     
-    @GetMapping
+    @GetMapping("/active")
     public ResponseEntity<List<Menu>> getAllActiveMenus() {
         CompletableFuture<List<Menu>> menus = menuService.getActiveMenus();
         return ResponseEntity.ok(menus.join());
     }
     
-    @GetMapping("/admin")
+    @GetMapping
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<Menu>> getAllMenus() {
         CompletableFuture<List<Menu>> menus = menuService.getAllMenus();
         return ResponseEntity.ok(menus.join());
     }
     
-    @GetMapping("/admin/{id}")
+    @GetMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Menu> getMenuById(@PathVariable Long id) {
         CompletableFuture<Menu> menus = menuService.getMenuById(id);
         return ResponseEntity.ok(menus.join());
     }
     
-    @PostMapping("/admin")
+    @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Menu> createMenu(@Valid @RequestBody MenuDTO menuDTO) {
         CompletableFuture<Menu> createdMenu = menuService.createMenu(menuDTO);
         return new ResponseEntity<>(createdMenu.join(), HttpStatus.CREATED);
     }
     
-    @PutMapping("/admin/{id}")
+    @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Menu> updateMenu(@PathVariable Long id, @Valid @RequestBody MenuDTO menuDTO) {
         CompletableFuture<Menu> updatedMenu = menuService.updateMenu(id, menuDTO);
         return ResponseEntity.ok(updatedMenu.join());
     }
     
-    @DeleteMapping("/admin/{id}")
+    @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Map<String, String>> deleteMenu(@PathVariable Long id) {
         menuService.deleteMenu(id);
