@@ -124,7 +124,7 @@ public class CheckoutControllerTest {
 
         when(checkoutService.submitCheckout(1L)).thenReturn(response);
 
-        mockMvc.perform(patch("/api/checkouts/1/submit"))
+        mockMvc.perform(put("/api/checkouts/1/submit"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(1L))
                 .andExpect(jsonPath("$.isSubmitted").value(true));
@@ -135,7 +135,7 @@ public class CheckoutControllerTest {
         when(checkoutService.submitCheckout(1L))
                 .thenThrow(new NoSuchElementException("Checkout not found"));
 
-        mockMvc.perform(patch("/api/checkouts/1/submit"))
+        mockMvc.perform(put("/api/checkouts/1/submit"))
                 .andExpect(status().isNotFound())
                 .andExpect(content().string("Checkout not found"));
     }
