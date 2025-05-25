@@ -48,4 +48,14 @@ public class RatingController {
                     return ResponseEntity.ok(response);
                 });
     }
+
+    @GetMapping("/id")
+    @PreAuthorize("hasRole('USER')")
+    public ResponseEntity<Long> getRatingIdByUserAndMenu(
+            @RequestParam Long userId,
+            @RequestParam Long menuId) {
+        return ratingService.getRatingByUserAndMenu(userId, menuId)
+                .map(rating -> ResponseEntity.ok(rating.getId()))
+                .orElse(ResponseEntity.notFound().build());
+    }
 }
