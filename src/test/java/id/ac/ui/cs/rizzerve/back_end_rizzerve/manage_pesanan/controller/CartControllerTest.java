@@ -68,7 +68,6 @@ class CartControllerTest {
 
         DeferredResult<ResponseEntity<CartItem>> result = cartController.addItemToCart(testUserId, testMenuId);
 
-        // Force completion
         ResponseEntity<CartItem> response = (ResponseEntity<CartItem>) result.getResult();
 
         assertNotNull(response);
@@ -84,7 +83,6 @@ class CartControllerTest {
 
         DeferredResult<ResponseEntity<CartItem>> result = cartController.addItemToCart(testUserId, testMenuId);
 
-        // Force completion
         ResponseEntity<?> response = (ResponseEntity<?>) result.getResult();
 
         assertNotNull(response);
@@ -109,7 +107,6 @@ class CartControllerTest {
 
         DeferredResult<ResponseEntity<?>> result = cartController.updateCartItem(testUserId, testMenuId, quantityChange);
 
-        // Force completion
         ResponseEntity<?> response = (ResponseEntity<?>) result.getResult();
 
         assertNotNull(response);
@@ -126,7 +123,6 @@ class CartControllerTest {
 
         DeferredResult<ResponseEntity<?>> result = cartController.updateCartItem(testUserId, testMenuId, quantityChange);
 
-        // Force completion
         ResponseEntity<?> response = (ResponseEntity<?>) result.getResult();
 
         assertNotNull(response);
@@ -142,7 +138,6 @@ class CartControllerTest {
 
         DeferredResult<ResponseEntity<?>> result = cartController.updateCartItem(testUserId, testMenuId, quantityChange);
 
-        // Force completion
         ResponseEntity<?> response = (ResponseEntity<?>) result.getResult();
 
         assertNotNull(response);
@@ -158,7 +153,6 @@ class CartControllerTest {
 
         DeferredResult<ResponseEntity<Void>> result = cartController.removeItemFromCart(testUserId, testMenuId);
 
-        // Force completion
         ResponseEntity<?> response = (ResponseEntity<?>) result.getResult();
 
         assertNotNull(response);
@@ -173,7 +167,6 @@ class CartControllerTest {
 
         DeferredResult<ResponseEntity<Void>> result = cartController.removeItemFromCart(testUserId, testMenuId);
 
-        // Force completion
         ResponseEntity<?> response = (ResponseEntity<?>) result.getResult();
 
         assertNotNull(response);
@@ -190,7 +183,6 @@ class CartControllerTest {
 
         DeferredResult<ResponseEntity<List<CartItem>>> result = cartController.getCartItems(testUserId);
 
-        // Force completion
         ResponseEntity<List<CartItem>> response = (ResponseEntity<List<CartItem>>) result.getResult();
 
         assertNotNull(response);
@@ -207,7 +199,6 @@ class CartControllerTest {
 
         DeferredResult<ResponseEntity<List<CartItem>>> result = cartController.getCartItems(testUserId);
 
-        // Force completion
         ResponseEntity<?> response = (ResponseEntity<?>) result.getResult();
 
         assertNotNull(response);
@@ -223,7 +214,6 @@ class CartControllerTest {
 
         DeferredResult<ResponseEntity<Void>> result = cartController.clearCart(testUserId);
 
-        // Force completion
         ResponseEntity<?> response = (ResponseEntity<?>) result.getResult();
 
         assertNotNull(response);
@@ -238,7 +228,6 @@ class CartControllerTest {
 
         DeferredResult<ResponseEntity<Void>> result = cartController.clearCart(testUserId);
 
-        // Force completion
         ResponseEntity<?> response = (ResponseEntity<?>) result.getResult();
 
         assertNotNull(response);
