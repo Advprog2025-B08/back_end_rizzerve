@@ -109,8 +109,8 @@ public class CheckoutServiceImpl implements CheckoutService {
             item.setQuantity(updatedQuantity);
         }
 
-        int new_price = calculateTotalPrice(cart);
-        checkout.setTotalPrice(new_price);
+        int newPrice = calculateTotalPrice(cart);
+        checkout.setTotalPrice(newPrice);
         cartRepository.save(cart);
     }
 
