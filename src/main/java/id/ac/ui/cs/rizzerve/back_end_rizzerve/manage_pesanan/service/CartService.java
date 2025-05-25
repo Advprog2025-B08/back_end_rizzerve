@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 public interface CartService {
-    // Synchronous methods for internal use
+    // SYNC
     Cart getOrCreateCart(Long userId);
     CartItem addItemToCart(Long userId, Long menuId);
     CartItem updateCartItemQuantity(Long userId, Long menuId, int quantityChange);
@@ -15,7 +15,7 @@ public interface CartService {
     List<CartItem> getCartItems(Long userId);
     void clearCart(Long userId);
 
-    // Asynchronous methods for external API
+    // ASYNC
     CompletableFuture<CartItem> addItemToCartAsync(Long userId, Long menuId);
     CompletableFuture<CartItem> updateCartItemQuantityAsync(Long userId, Long menuId, int quantityChange);
     CompletableFuture<Void> removeItemFromCartAsync(Long userId, Long menuId);

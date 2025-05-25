@@ -8,11 +8,11 @@ import id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_menu.repository.MenuReposit
 import id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_menu.model.Menu;
 import jakarta.persistence.EntityNotFoundException;
 
-import org.hibernate.Hibernate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.annotation.Propagation;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -33,7 +33,6 @@ public class CartServiceImpl implements CartService {
         this.menuRepository = menuRepository;
     }
 
-    // Synchronous methods for internal use
     @Override
     @Transactional
     public Cart getOrCreateCart(Long userId) {
@@ -57,19 +56,22 @@ public class CartServiceImpl implements CartService {
 
         Optional<CartItem> existingItem = cartItemRepository.findByCartIdAndMenuId(cart.getId(), menuId);
 
+        CartItem savedItem;
         if (existingItem.isPresent()) {
             CartItem item = existingItem.get();
             item.setQuantity(item.getQuantity() + 1);
-            return cartItemRepository.save(item);
+            savedItem = cartItemRepository.save(item);
         } else {
             CartItem newItem = CartItem.builder()
                     .cartId(cart.getId())
                     .menuId(menuId)
                     .quantity(1)
                     .build();
-
-            return cartItemRepository.save(newItem);
+            savedItem = cartItemRepository.save(newItem);
         }
+
+        return cartItemRepository.findByCartIdAndMenuIdWithMenu(cart.getId(), menuId)
+                .orElse(savedItem);
     }
 
     @Override
@@ -88,7 +90,10 @@ public class CartServiceImpl implements CartService {
         }
 
         item.setQuantity(newQuantity);
-        return cartItemRepository.save(item);
+        CartItem savedItem = cartItemRepository.save(item);
+
+        return cartItemRepository.findByCartIdAndMenuIdWithMenu(cart.getId(), menuId)
+                .orElse(savedItem);
     }
 
     @Override
@@ -110,14 +115,18 @@ public class CartServiceImpl implements CartService {
     }
 
     @Override
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void clearCart(Long userId) {
-        Cart cart = getOrCreateCart(userId);
-        cart.getItems().clear();
-        cartRepository.save(cart);
+        Optional<Cart> cartOptional = cartRepository.findByUserId(userId);
+        if (cartOptional.isPresent()) {
+            Cart cart = cartOptional.get();
+            List<CartItem> items = cartItemRepository.findAllByCartId(cart.getId());
+            if (!items.isEmpty()) {
+                cartItemRepository.deleteAll(items);
+            }
+        }
     }
 
-    // Asynchronous methods for external API
     @Override
     @Async("asyncCartExecutor")
     public CompletableFuture<CartItem> addItemToCartAsync(Long userId, Long menuId) {

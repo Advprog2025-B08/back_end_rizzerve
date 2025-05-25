@@ -28,7 +28,6 @@ public class CartController {
     public DeferredResult<ResponseEntity<CartItem>> addItemToCart(@PathVariable Long userId, @PathVariable Long menuId) {
         DeferredResult<ResponseEntity<CartItem>> deferredResult = new DeferredResult<>(30000L);
 
-        // Set timeout handler
         deferredResult.onTimeout(() -> {
             deferredResult.setErrorResult(
                     ResponseEntity.status(HttpStatus.REQUEST_TIMEOUT)
@@ -36,7 +35,6 @@ public class CartController {
             );
         });
 
-        // Execute async operation
         cartService.addItemToCartAsync(userId, menuId)
                 .thenAccept(item -> {
                     deferredResult.setResult(new ResponseEntity<>(item, HttpStatus.CREATED));

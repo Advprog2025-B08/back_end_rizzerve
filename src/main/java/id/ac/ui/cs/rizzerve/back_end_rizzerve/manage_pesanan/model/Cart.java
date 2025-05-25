@@ -23,12 +23,10 @@ public class Cart {
     @Column(name = "user_id")
     private Long userId;
 
-    // Relasi ke User - read-only karena kita mengelola foreign key secara manual
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", insertable = false, updatable = false)
     private User user;
 
-    // Relasi ke CartItem - bidirectional
     @OneToMany(mappedBy = "cart", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     @Builder.Default
     private List<CartItem> items = new ArrayList<>();

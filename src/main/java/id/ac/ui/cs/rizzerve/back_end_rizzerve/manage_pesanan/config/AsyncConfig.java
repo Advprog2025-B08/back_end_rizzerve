@@ -22,16 +22,14 @@ public class AsyncConfig implements AsyncConfigurer {
     public Executor asyncCartExecutor() {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
 
-        // Konfigurasi thread pool yang lebih optimal
-        executor.setCorePoolSize(5);              // Thread inti
-        executor.setMaxPoolSize(20);              // Maksimum thread
-        executor.setQueueCapacity(50);            // Kapasitas antrian task
-        executor.setKeepAliveSeconds(60);         // Waktu hidup thread idle
+        executor.setCorePoolSize(5);
+        executor.setMaxPoolSize(20);
+        executor.setQueueCapacity(50);
+        executor.setKeepAliveSeconds(60);
         executor.setThreadNamePrefix("AsyncCart-");
         executor.setWaitForTasksToCompleteOnShutdown(true);
-        executor.setAwaitTerminationSeconds(60);  // Waktu tunggu saat shutdown
+        executor.setAwaitTerminationSeconds(60);
 
-        // Rejection policy ketika pool penuh
         executor.setRejectedExecutionHandler((r, executor1) -> {
             logger.warn("Cart async task rejected, queue is full. Task: {}", r.toString());
             throw new RuntimeException("Cart async task queue is full");
@@ -51,9 +49,6 @@ public class AsyncConfig implements AsyncConfigurer {
         return new CustomAsyncExceptionHandler();
     }
 
-    /**
-     * Custom exception handler untuk async operations
-     */
     public static class CustomAsyncExceptionHandler implements AsyncUncaughtExceptionHandler {
         private static final Logger logger = LoggerFactory.getLogger(CustomAsyncExceptionHandler.class);
 
@@ -62,7 +57,6 @@ public class AsyncConfig implements AsyncConfigurer {
             logger.error("Async method {} threw exception: {}",
                     method.getName(), throwable.getMessage(), throwable);
 
-            // Log parameter values untuk debugging
             if (obj != null && obj.length > 0) {
                 logger.error("Method parameters: ");
                 for (int i = 0; i < obj.length; i++) {
