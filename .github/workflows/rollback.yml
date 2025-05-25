@@ -12,6 +12,7 @@ on:
           - previous
           - specific_version
           - list_versions
+          - history
       version_tag:
         description: 'Specific version tag (if rollback_type is specific_version)'
         required: false
@@ -22,6 +23,32 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Show Deployment History
+        if: github.event.inputs.rollback_type == 'history'
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.HOST_DNS }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            echo "=== Deployment History ==="
+            echo ""
+            if [ -f /home/ec2-user/deployments/history.txt ]; then
+              echo "Previous deployments (newest first):"
+              echo "Date/Time | Image | GitHub Run ID"
+              echo "----------------------------------------"
+              tail -10 /home/ec2-user/deployments/history.txt | sort -r
+            else
+              echo "No deployment history found"
+            fi
+            echo ""
+            echo "Current deployment:"
+            if [ -f /home/ec2-user/deployments/current.info ]; then
+              cat /home/ec2-user/deployments/current.info
+            else
+              echo "No current deployment info found"
+            fi
+
       - name: List Available Versions (if requested)
         if: github.event.inputs.rollback_type == 'list_versions'
         uses: appleboy/ssh-action@master
@@ -51,6 +78,13 @@ jobs:
             echo ""
             echo "Current running container:"
             docker ps -f name=rizzerve --format "table {{.Names}}\t{{.Status}}\t{{.Image}}\t{{.Ports}}" || echo "No container running"
+            echo ""
+            echo "Recent deployment history:"
+            if [ -f /home/ec2-user/deployments/history.txt ]; then
+              echo "Date/Time | Image | GitHub Run ID"
+              echo "----------------------------------------"
+              tail -5 /home/ec2-user/deployments/history.txt | sort -r
+            fi
 
       - name: Rollback to Previous Version
         if: github.event.inputs.rollback_type == 'previous'
@@ -86,17 +120,35 @@ jobs:
               echo "❌ ERROR: Previous image $PREVIOUS_IMAGE not found locally!"
               echo "Available images:"
               docker images rizzerve-app --format "table {{.Tag}}\t{{.CreatedAt}}"
+            
+              echo ""
+              echo "Checking deployment history for alternatives..."
+              if [ -f /home/ec2-user/deployments/history.txt ]; then
+                echo "Recent deployments:"
+                tail -5 /home/ec2-user/deployments/history.txt | sort -r
+                echo ""
+                echo "You can use 'specific_version' rollback type with one of these versions."
+              fi
               exit 1
             fi
             
-            # Backup current deployment info before rollback
             if docker ps -q -f name=rizzerve; then
-              CURRENT_IMAGE=$(docker inspect rizzerve --format='{{.Config.Image}}')
+              CURRENT_SPECIFIC_IMAGE=""
+              if [ -f /home/ec2-user/deployments/current.info ]; then
+                CURRENT_SPECIFIC_IMAGE=$(grep "SPECIFIC_IMAGE=" /home/ec2-user/deployments/current.info | cut -d= -f2 || echo "")
+              fi
+            
+              if [ -z "$CURRENT_SPECIFIC_IMAGE" ]; then
+                CURRENT_SPECIFIC_IMAGE=$(docker inspect rizzerve --format='{{.Config.Image}}')
+              fi
+            
               cat > /home/ec2-user/deployments/rollback-backup.info << EOF
-            ROLLBACK_BACKUP_IMAGE=$CURRENT_IMAGE
+            ROLLBACK_BACKUP_IMAGE=$CURRENT_SPECIFIC_IMAGE
             ROLLBACK_BACKUP_TIME=$(date '+%Y-%m-%d %H:%M:%S')
             ROLLBACK_FROM_GITHUB_RUN=${{ github.run_id }}
             EOF
+            
+              echo "$(date '+%Y-%m-%d %H:%M:%S') | $CURRENT_SPECIFIC_IMAGE | rollback-backup | ${{ github.run_id }}" >> /home/ec2-user/deployments/history.txt
             fi
             
             # Recreate environment file
@@ -106,7 +158,7 @@ jobs:
             DB_NAME=${{ secrets.DB_NAME }}
             DB_USER=${{ secrets.DB_USER }}
             DB_PASSWORD=${{ secrets.DB_PASSWORD }}
-            SPRING_PROFILES_ACTIVE=master
+            SPRING_PROFILES_ACTIVE=staging
             ROLLBACK_TIME=$(date '+%Y-%m-%d %H:%M:%S')
             ROLLBACK_TO_IMAGE=$PREVIOUS_IMAGE
             EOF
@@ -142,12 +194,15 @@ jobs:
             
               # Update deployment info
               cat > /home/ec2-user/deployments/current.info << EOF
-            CURRENT_IMAGE=$PREVIOUS_IMAGE
+            CURRENT_IMAGE=rizzerve-app:latest
+            SPECIFIC_IMAGE=$PREVIOUS_IMAGE
             ROLLBACK_TIME=$(date '+%Y-%m-%d %H:%M:%S')
             ROLLBACK_TYPE=previous
             GITHUB_ROLLBACK_RUN=${{ github.run_id }}
             CONTAINER_STATUS=running
             EOF
+            
+              echo "$(date '+%Y-%m-%d %H:%M:%S') | $PREVIOUS_IMAGE | rollback-previous | ${{ github.run_id }}" >> /home/ec2-user/deployments/history.txt
             
               echo "Application should be accessible at: http://${{ secrets.HOST_DNS }}"
             else
@@ -174,10 +229,22 @@ jobs:
               echo "❌ ERROR: Version tag not provided!"
               echo "Available versions:"
               docker images rizzerve-app --format "table {{.Tag}}\t{{.CreatedAt}}"
+              echo ""
+              if [ -f /home/ec2-user/deployments/history.txt ]; then
+                echo "Recent deployment history:"
+                echo "Date/Time | Image | GitHub Run ID"
+                echo "----------------------------------------"
+                tail -5 /home/ec2-user/deployments/history.txt | sort -r
+              fi
               exit 1
             fi
             
-            TARGET_IMAGE="rizzerve-app:$VERSION_TAG"
+            if [[ "$VERSION_TAG" == rizzerve-app:* ]]; then
+              TARGET_IMAGE="$VERSION_TAG"
+            else
+              TARGET_IMAGE="rizzerve-app:$VERSION_TAG"
+            fi
+            
             echo "Rolling back to: $TARGET_IMAGE"
             
             # Check if target image exists
@@ -185,17 +252,34 @@ jobs:
               echo "❌ ERROR: Image $TARGET_IMAGE not found locally!"
               echo "Available images:"
               docker images rizzerve-app --format "table {{.Tag}}\t{{.CreatedAt}}"
+              echo ""
+              if [ -f /home/ec2-user/deployments/history.txt ]; then
+                echo "Recent deployment history:"
+                echo "Date/Time | Image | GitHub Run ID"
+                echo "----------------------------------------"
+                tail -5 /home/ec2-user/deployments/history.txt | sort -r
+              fi
               exit 1
             fi
             
             # Backup current deployment info before rollback
             if docker ps -q -f name=rizzerve; then
-              CURRENT_IMAGE=$(docker inspect rizzerve --format='{{.Config.Image}}')
+              CURRENT_SPECIFIC_IMAGE=""
+              if [ -f /home/ec2-user/deployments/current.info ]; then
+                CURRENT_SPECIFIC_IMAGE=$(grep "SPECIFIC_IMAGE=" /home/ec2-user/deployments/current.info | cut -d= -f2 || echo "")
+              fi
+            
+              if [ -z "$CURRENT_SPECIFIC_IMAGE" ]; then
+                CURRENT_SPECIFIC_IMAGE=$(docker inspect rizzerve --format='{{.Config.Image}}')
+              fi
+            
               cat > /home/ec2-user/deployments/rollback-backup.info << EOF
-            ROLLBACK_BACKUP_IMAGE=$CURRENT_IMAGE
+            ROLLBACK_BACKUP_IMAGE=$CURRENT_SPECIFIC_IMAGE
             ROLLBACK_BACKUP_TIME=$(date '+%Y-%m-%d %H:%M:%S')
             ROLLBACK_FROM_GITHUB_RUN=${{ github.run_id }}
             EOF
+            
+              echo "$(date '+%Y-%m-%d %H:%M:%S') | $CURRENT_SPECIFIC_IMAGE | rollback-backup | ${{ github.run_id }}" >> /home/ec2-user/deployments/history.txt
             fi
             
             # Recreate environment file
@@ -205,7 +289,7 @@ jobs:
             DB_NAME=${{ secrets.DB_NAME }}
             DB_USER=${{ secrets.DB_USER }}
             DB_PASSWORD=${{ secrets.DB_PASSWORD }}
-            SPRING_PROFILES_ACTIVE=master
+            SPRING_PROFILES_ACTIVE=staging
             ROLLBACK_TIME=$(date '+%Y-%m-%d %H:%M:%S')
             ROLLBACK_TO_IMAGE=$TARGET_IMAGE
             ROLLBACK_TO_VERSION=$VERSION_TAG
@@ -242,13 +326,16 @@ jobs:
             
               # Update deployment info
               cat > /home/ec2-user/deployments/current.info << EOF
-            CURRENT_IMAGE=$TARGET_IMAGE
+            CURRENT_IMAGE=rizzerve-app:latest
+            SPECIFIC_IMAGE=$TARGET_IMAGE
             VERSION_TAG=$VERSION_TAG
             ROLLBACK_TIME=$(date '+%Y-%m-%d %H:%M:%S')
             ROLLBACK_TYPE=specific_version
             GITHUB_ROLLBACK_RUN=${{ github.run_id }}
             CONTAINER_STATUS=running
             EOF
+            
+              echo "$(date '+%Y-%m-%d %H:%M:%S') | $TARGET_IMAGE | rollback-specific | ${{ github.run_id }}" >> /home/ec2-user/deployments/history.txt
             
               echo "Application should be accessible at: http://${{ secrets.HOST_DNS }}"
             else

@@ -87,16 +87,25 @@ jobs:
             echo "Commit: ${{ steps.version.outputs.short_sha }}"
             echo "Timestamp: $(date)"
             
-            # Save current deployment info for rollback purposes
+            CURRENT_SPECIFIC_IMAGE=""
             if docker ps -q -f name=rizzerve; then
-              CURRENT_IMAGE=$(docker inspect rizzerve --format='{{.Config.Image}}')
-              echo "Backing up current deployment: $CURRENT_IMAGE"
+              CURRENT_IMAGE=$(docker inspect rizzerve --format='{{.Config.Image}}' 2>/dev/null || echo "")
+            
+              if [[ "$CURRENT_IMAGE" == *":latest" ]] && [ -f /home/ec2-user/deployments/current.info ]; then
+                CURRENT_SPECIFIC_IMAGE=$(grep "SPECIFIC_IMAGE=" /home/ec2-user/deployments/current.info | cut -d= -f2 || echo "")
+              else
+                CURRENT_SPECIFIC_IMAGE="$CURRENT_IMAGE"
+              fi
+            
+              echo "Backing up current deployment: $CURRENT_SPECIFIC_IMAGE"
             
               cat > /home/ec2-user/deployments/previous.info << EOF
-            PREVIOUS_IMAGE=$CURRENT_IMAGE
+            PREVIOUS_IMAGE=$CURRENT_SPECIFIC_IMAGE
             BACKUP_TIME=$(date '+%Y-%m-%d %H:%M:%S')
             BACKUP_FROM_DEPLOYMENT=${{ github.run_id }}
             EOF
+            
+              echo "$(date '+%Y-%m-%d %H:%M:%S') | $CURRENT_SPECIFIC_IMAGE | $(cat /home/ec2-user/deployments/current.info | grep "GITHUB_RUN_ID=" | cut -d= -f2 || echo "unknown")" >> /home/ec2-user/deployments/history.txt
             fi
             
             # Load the new Docker image
@@ -112,14 +121,14 @@ jobs:
             docker stop rizzerve || true
             docker rm rizzerve || true
             
-            # Run new container with environment file
-            echo "Starting new container..."
+            DEPLOY_IMAGE="rizzerve-app:${{ steps.version.outputs.version_tag }}"
+            echo "Starting new container with image: $DEPLOY_IMAGE"
             docker run -d \
               --name rizzerve \
               -p 80:8080 \
               --env-file /home/ec2-user/.env \
               --restart unless-stopped \
-              rizzerve-app:latest
+              $DEPLOY_IMAGE
             
             # Wait for container to start
             sleep 10
@@ -184,9 +193,9 @@ jobs:
               echo "Container startup logs (last 10 lines):"
               docker logs --tail 10 rizzerve
             
-              # Save successful deployment info
               cat > /home/ec2-user/deployments/current.info << EOF
             CURRENT_IMAGE=rizzerve-app:latest
+            SPECIFIC_IMAGE=$DEPLOY_IMAGE
             VERSION_TAG=${{ steps.version.outputs.version_tag }}
             COMMIT_SHA=${{ steps.version.outputs.short_sha }}
             DEPLOY_TIME=$(date '+%Y-%m-%d %H:%M:%S')
@@ -221,6 +230,7 @@ jobs:
               # Still save deployment info but mark as partial
               cat > /home/ec2-user/deployments/current.info << EOF
             CURRENT_IMAGE=rizzerve-app:latest
+            SPECIFIC_IMAGE=$DEPLOY_IMAGE
             VERSION_TAG=${{ steps.version.outputs.version_tag }}
             COMMIT_SHA=${{ steps.version.outputs.short_sha }}
             DEPLOY_TIME=$(date '+%Y-%m-%d %H:%M:%S')
