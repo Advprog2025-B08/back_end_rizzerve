@@ -1,0 +1,78 @@
+name: Restart Application
+
+on:
+  workflow_dispatch:
+    inputs:
+      image_tag:
+        description: 'Docker image tag to run (default: latest)'
+        required: false
+        default: 'latest'
+        type: string
+
+jobs:
+  restart:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Restart Rizzerve Application on EC2
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.HOST_DNS }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            echo "=== Restarting Rizzerve Application ==="
+            echo "Timestamp: $(date)"
+            echo "Requested image tag: ${{ github.event.inputs.image_tag }}"
+            
+            # Recreate environment file (in case it was lost)
+            cat > /home/ec2-user/.env << EOF
+            DB_HOST=${{ secrets.DB_HOST }}
+            DB_PORT=${{ secrets.DB_PORT }}
+            DB_NAME=${{ secrets.DB_NAME }}
+            DB_USER=${{ secrets.DB_USER }}
+            DB_PASSWORD=${{ secrets.DB_PASSWORD }}
+            SPRING_PROFILES_ACTIVE=master
+            RESTART_TIME=$(date '+%Y-%m-%d %H:%M:%S')
+            EOF
+            
+            # Secure the environment file
+            chmod 600 /home/ec2-user/.env
+            
+            # Check available images
+            echo "Available Docker images:"
+            docker images rizzerve-app --format "table {{.Tag}}\t{{.CreatedAt}}\t{{.Size}}"
+            
+            # Determine which image to use
+            IMAGE_TAG="${{ github.event.inputs.image_tag }}"
+            if [ "$IMAGE_TAG" = "" ] || [ "$IMAGE_TAG" = "latest" ]; then
+              IMAGE_TAG="latest"
+            fi
+            
+            # Check if the requested image exists
+            if ! docker images --format "{{.Repository}}:{{.Tag}}" | grep -q "rizzerve-app:$IMAGE_TAG"; then
+              echo "Warning: Image rizzerve-app:$IMAGE_TAG not found. Available images:"
+              docker images rizzerve-app --format "table {{.Tag}}\t{{.CreatedAt}}"
+              echo "Using latest available image..."
+              IMAGE_TAG=$(docker images rizzerve-app --format "{{.Tag}}" | head -1)
+            fi
+            
+            echo "Using image: rizzerve-app:$IMAGE_TAG"
+            
+            # Remove any existing container (stopped or running)
+            docker rm -f rizzerve || true
+            
+            # Run the container
+            docker run -d \
+              --name rizzerve \
+              -p 80:8080 \
+              --env-file /home/ec2-user/.env \
+              --restart unless-stopped \
+              rizzerve-app:$IMAGE_TAG
+            
+            # Wait for container to start
+            sleep 10
+            
+            # Check container status
+            echo "Container status:"
+            docker ps -f name=rizzerve --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}\t{{.Image}}"
