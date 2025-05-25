@@ -87,9 +87,9 @@ public class AuthController {
 
             Optional<User> userOptional = userRepository.findByUsername(loginRequest.getUsername());
             String role = userOptional.map(User::getRole).orElse("");
-
-            return ResponseEntity.ok(new JwtResponse(jwt, userDetails.getUsername(), role));
-
+            
+            return ResponseEntity.ok(new JwtResponse(jwt, userDetails.getUsername(), role, userOptional.map(User::getId).orElse(null)));
+        
         } catch (BadCredentialsException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid credentials");
         }
