@@ -17,11 +17,11 @@ public class Meja {
     private Integer nomor;
 
     @OneToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
-    @JoinColumn(name = "user_id")
+    @JoinColumn(name = "user_id", nullable = true)
     private User user;
 
-    @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
-    @JoinColumn(name = "cart_id")
+    @OneToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE}, orphanRemoval = false)  // Remove CascadeType.ALL and orphanRemoval
+    @JoinColumn(name = "cart_id", nullable = true)
     private Cart cart;
 
     public void setUser(User user) {
