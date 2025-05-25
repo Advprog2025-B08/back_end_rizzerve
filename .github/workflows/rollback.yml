@@ -1,0 +1,259 @@
+name: Rollback Deployment
+
+on:
+  workflow_dispatch:
+    inputs:
+      rollback_type:
+        description: 'Rollback Type'
+        required: true
+        default: 'previous'
+        type: choice
+        options:
+          - previous
+          - specific_version
+          - list_versions
+      version_tag:
+        description: 'Specific version tag (if rollback_type is specific_version)'
+        required: false
+        type: string
+
+jobs:
+  rollback:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: List Available Versions (if requested)
+        if: github.event.inputs.rollback_type == 'list_versions'
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.HOST_DNS }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            echo "=== Available Versions for Rollback ==="
+            echo ""
+            echo "Current deployment:"
+            if [ -f /home/ec2-user/deployments/current.info ]; then
+              cat /home/ec2-user/deployments/current.info
+            else
+              echo "No current deployment info found"
+            fi
+            echo ""
+            echo "Previous deployment:"
+            if [ -f /home/ec2-user/deployments/previous.info ]; then
+              cat /home/ec2-user/deployments/previous.info
+            else
+              echo "No previous deployment info found"
+            fi
+            echo ""
+            echo "Available Docker images:"
+            docker images rizzerve-app --format "table {{.Tag}}\t{{.CreatedAt}}\t{{.Size}}"
+            echo ""
+            echo "Current running container:"
+            docker ps -f name=rizzerve --format "table {{.Names}}\t{{.Status}}\t{{.Image}}\t{{.Ports}}" || echo "No container running"
+
+      - name: Rollback to Previous Version
+        if: github.event.inputs.rollback_type == 'previous'
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.HOST_DNS }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            echo "=== Rolling Back to Previous Version ==="
+            echo "Timestamp: $(date)"
+            
+            # Check if previous deployment info exists
+            if [ ! -f /home/ec2-user/deployments/previous.info ]; then
+              echo "❌ ERROR: No previous deployment information found!"
+              echo "Available images:"
+              docker images rizzerve-app --format "table {{.Tag}}\t{{.CreatedAt}}"
+              exit 1
+            fi
+            
+            # Load previous deployment info
+            source /home/ec2-user/deployments/previous.info
+            
+            if [ -z "$PREVIOUS_IMAGE" ]; then
+              echo "❌ ERROR: Previous image information not found in deployment info!"
+              exit 1
+            fi
+            
+            echo "Rolling back to: $PREVIOUS_IMAGE"
+            
+            # Check if previous image exists
+            if ! docker images --format "{{.Repository}}:{{.Tag}}" | grep -q "$PREVIOUS_IMAGE"; then
+              echo "❌ ERROR: Previous image $PREVIOUS_IMAGE not found locally!"
+              echo "Available images:"
+              docker images rizzerve-app --format "table {{.Tag}}\t{{.CreatedAt}}"
+              exit 1
+            fi
+            
+            # Backup current deployment info before rollback
+            if docker ps -q -f name=rizzerve; then
+              CURRENT_IMAGE=$(docker inspect rizzerve --format='{{.Config.Image}}')
+              cat > /home/ec2-user/deployments/rollback-backup.info << EOF
+            ROLLBACK_BACKUP_IMAGE=$CURRENT_IMAGE
+            ROLLBACK_BACKUP_TIME=$(date '+%Y-%m-%d %H:%M:%S')
+            ROLLBACK_FROM_GITHUB_RUN=${{ github.run_id }}
+            EOF
+            fi
+            
+            # Recreate environment file
+            cat > /home/ec2-user/.env << EOF
+            DB_HOST=${{ secrets.DB_HOST }}
+            DB_PORT=${{ secrets.DB_PORT }}
+            DB_NAME=${{ secrets.DB_NAME }}
+            DB_USER=${{ secrets.DB_USER }}
+            DB_PASSWORD=${{ secrets.DB_PASSWORD }}
+            SPRING_PROFILES_ACTIVE=master
+            ROLLBACK_TIME=$(date '+%Y-%m-%d %H:%M:%S')
+            ROLLBACK_TO_IMAGE=$PREVIOUS_IMAGE
+            EOF
+            chmod 600 /home/ec2-user/.env
+            
+            # Stop current container
+            echo "Stopping current container..."
+            docker stop rizzerve || true
+            docker rm rizzerve || true
+            
+            # Start previous version
+            echo "Starting previous version..."
+            docker run -d \
+              --name rizzerve \
+              -p 80:8080 \
+              --env-file /home/ec2-user/.env \
+              --restart unless-stopped \
+              $PREVIOUS_IMAGE
+            
+            # Wait for container to start
+            sleep 15
+            
+            # Check if container is running
+            if docker ps -f name=rizzerve --format "{{.Names}}" | grep -q "rizzerve"; then
+              echo "✅ Rollback successful! Container is running."
+            
+              # Show container details
+              docker ps -f name=rizzerve --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}\t{{.Image}}"
+            
+              # Show startup logs
+              echo "Container startup logs:"
+              docker logs --tail 15 rizzerve
+            
+              # Update deployment info
+              cat > /home/ec2-user/deployments/current.info << EOF
+            CURRENT_IMAGE=$PREVIOUS_IMAGE
+            ROLLBACK_TIME=$(date '+%Y-%m-%d %H:%M:%S')
+            ROLLBACK_TYPE=previous
+            GITHUB_ROLLBACK_RUN=${{ github.run_id }}
+            CONTAINER_STATUS=running
+            EOF
+            
+              echo "Application should be accessible at: http://${{ secrets.HOST_DNS }}"
+            else
+              echo "❌ Rollback failed - container is not running!"
+              echo "Container logs:"
+              docker logs rizzerve 2>/dev/null || echo "No logs available"
+              exit 1
+            fi
+
+      - name: Rollback to Specific Version
+        if: github.event.inputs.rollback_type == 'specific_version'
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.HOST_DNS }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            echo "=== Rolling Back to Specific Version ==="
+            echo "Timestamp: $(date)"
+            
+            VERSION_TAG="${{ github.event.inputs.version_tag }}"
+            
+            if [ -z "$VERSION_TAG" ]; then
+              echo "❌ ERROR: Version tag not provided!"
+              echo "Available versions:"
+              docker images rizzerve-app --format "table {{.Tag}}\t{{.CreatedAt}}"
+              exit 1
+            fi
+            
+            TARGET_IMAGE="rizzerve-app:$VERSION_TAG"
+            echo "Rolling back to: $TARGET_IMAGE"
+            
+            # Check if target image exists
+            if ! docker images --format "{{.Repository}}:{{.Tag}}" | grep -q "$TARGET_IMAGE"; then
+              echo "❌ ERROR: Image $TARGET_IMAGE not found locally!"
+              echo "Available images:"
+              docker images rizzerve-app --format "table {{.Tag}}\t{{.CreatedAt}}"
+              exit 1
+            fi
+            
+            # Backup current deployment info before rollback
+            if docker ps -q -f name=rizzerve; then
+              CURRENT_IMAGE=$(docker inspect rizzerve --format='{{.Config.Image}}')
+              cat > /home/ec2-user/deployments/rollback-backup.info << EOF
+            ROLLBACK_BACKUP_IMAGE=$CURRENT_IMAGE
+            ROLLBACK_BACKUP_TIME=$(date '+%Y-%m-%d %H:%M:%S')
+            ROLLBACK_FROM_GITHUB_RUN=${{ github.run_id }}
+            EOF
+            fi
+            
+            # Recreate environment file
+            cat > /home/ec2-user/.env << EOF
+            DB_HOST=${{ secrets.DB_HOST }}
+            DB_PORT=${{ secrets.DB_PORT }}
+            DB_NAME=${{ secrets.DB_NAME }}
+            DB_USER=${{ secrets.DB_USER }}
+            DB_PASSWORD=${{ secrets.DB_PASSWORD }}
+            SPRING_PROFILES_ACTIVE=master
+            ROLLBACK_TIME=$(date '+%Y-%m-%d %H:%M:%S')
+            ROLLBACK_TO_IMAGE=$TARGET_IMAGE
+            ROLLBACK_TO_VERSION=$VERSION_TAG
+            EOF
+            chmod 600 /home/ec2-user/.env
+            
+            # Stop current container
+            echo "Stopping current container..."
+            docker stop rizzerve || true
+            docker rm rizzerve || true
+            
+            # Start target version
+            echo "Starting version $VERSION_TAG..."
+            docker run -d \
+              --name rizzerve \
+              -p 80:8080 \
+              --env-file /home/ec2-user/.env \
+              --restart unless-stopped \
+              $TARGET_IMAGE
+            
+            # Wait for container to start
+            sleep 15
+            
+            # Check if container is running
+            if docker ps -f name=rizzerve --format "{{.Names}}" | grep -q "rizzerve"; then
+              echo "✅ Rollback to $VERSION_TAG successful! Container is running."
+            
+              # Show container details
+              docker ps -f name=rizzerve --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}\t{{.Image}}"
+            
+              # Show startup logs
+              echo "Container startup logs:"
+              docker logs --tail 15 rizzerve
+            
+              # Update deployment info
+              cat > /home/ec2-user/deployments/current.info << EOF
+            CURRENT_IMAGE=$TARGET_IMAGE
+            VERSION_TAG=$VERSION_TAG
+            ROLLBACK_TIME=$(date '+%Y-%m-%d %H:%M:%S')
+            ROLLBACK_TYPE=specific_version
+            GITHUB_ROLLBACK_RUN=${{ github.run_id }}
+            CONTAINER_STATUS=running
+            EOF
+            
+              echo "Application should be accessible at: http://${{ secrets.HOST_DNS }}"
+            else
+              echo "❌ Rollback to $VERSION_TAG failed - container is not running!"
+              echo "Container logs:"
+              docker logs rizzerve 2>/dev/null || echo "No logs available"
+              exit 1
+            fi
