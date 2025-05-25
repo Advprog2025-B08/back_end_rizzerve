@@ -34,6 +34,22 @@ public class CheckoutController {
         return ResponseEntity.ok(checkoutService.getSubmittedCheckouts());
     }
 
+    @GetMapping
+    public ResponseEntity<?> getCheckoutsByUserId(@RequestParam Long userId) {
+        try {
+            Checkout checkout = checkoutService.findCheckoutsByUserId(userId);
+
+            CheckoutResponse responseDTO = CheckoutResponse.builder()
+                    .id(checkout.getId())
+                    .build();
+
+            return ResponseEntity.ok(responseDTO);
+        } catch (NoSuchElementException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(e.getMessage());
+        }
+    }
+
     @GetMapping("/{checkoutId}")
     public ResponseEntity<?> getCheckoutDetails(@PathVariable Long checkoutId) {
         Optional<Checkout> optionalCheckout = checkoutService.findById(checkoutId);
@@ -119,7 +135,7 @@ public class CheckoutController {
         }
     }
 
-    @DeleteMapping("/{checkoutId}")
+    @DeleteMapping("/{checkoutId}/processed")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> deleteProcessedCheckout(@PathVariable Long checkoutId) {
         try {

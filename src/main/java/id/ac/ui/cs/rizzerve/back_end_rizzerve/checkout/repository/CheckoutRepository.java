@@ -11,4 +11,5 @@ import java.util.List;
 public interface CheckoutRepository extends JpaRepository<Checkout, Long> {
     Optional<Checkout> findByCartId(Long cartId);
     List<Checkout> findByIsSubmittedTrue();
+    Optional<Checkout> findByUserId(Long userId);
 }

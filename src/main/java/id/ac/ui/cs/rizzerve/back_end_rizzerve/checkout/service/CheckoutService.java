@@ -13,4 +13,5 @@ public interface CheckoutService {
     Checkout submitCheckout(Long checkoutId);
     List<CheckoutResponse> getSubmittedCheckouts();
     void deleteCheckoutAfterProcessing(Long checkoutId);
+    Checkout findCheckoutsByUserId(Long userId);
 }

@@ -2,7 +2,9 @@ package id.ac.ui.cs.rizzerve.back_end_rizzerve.checkout.service;
 
 import id.ac.ui.cs.rizzerve.back_end_rizzerve.checkout.model.Checkout;
 import id.ac.ui.cs.rizzerve.back_end_rizzerve.checkout.repository.CheckoutRepository;
+import id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_menu.model.Menu;
 import id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_menu.repository.MenuRepository;
+import id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_menu.repository.UserRepository;
 import id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_pesanan.model.Cart;
 import id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_pesanan.model.CartItem;
 import id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_menu.model.User;
@@ -29,6 +31,7 @@ class CheckoutServiceImplTest {
     private CheckoutRepository checkoutRepository;
     private CheckoutServiceImpl checkoutService;
     private CartRepository cartRepository;
+    private UserRepository userRepository;
     private CartItemRepository cartItemRepository;
     private MenuRepository menuRepository;
 
@@ -42,11 +45,20 @@ class CheckoutServiceImplTest {
         menuRepository = mock(MenuRepository.class);
         cartItemRepository = mock(CartItemRepository.class);
 
-        checkoutService = new CheckoutServiceImpl(checkoutRepository, cartRepository);
-
+        checkoutService = new CheckoutServiceImpl(checkoutRepository, cartRepository, userRepository);
 
         User user = new User();
         user.setId(1L);
+
+        Menu menu1 = new Menu();
+        menu1.setId(1L);
+        menu1.setName("Menu 1");
+        menu1.setPrice(15000);
+
+        Menu menu2 = new Menu();
+        menu2.setId(2L);
+        menu2.setName("Menu 2");
+        menu2.setPrice(5000);
 
         CartItem item1 = CartItem.builder()
                 .id(1L)
@@ -54,6 +66,8 @@ class CheckoutServiceImplTest {
                 .cartId(1L)
                 .cart(cart)
                 .quantity(2)
+                .menuId(1L)
+                .menu(menu1)
                 .build();
 
         CartItem item2 = CartItem.builder()
@@ -61,6 +75,8 @@ class CheckoutServiceImplTest {
                 .cartId(1L)
                 .cart(cart)
                 .quantity(1)
+                .menuId(2L)
+                .menu(menu2)
                 .build();
 
         cart = Cart.builder()
@@ -70,10 +86,9 @@ class CheckoutServiceImplTest {
                 .items(new ArrayList<>(List.of(item1, item2)))
                 .build();
 
-        expectedTotal = 3;
+        expectedTotal = 35000;
 
         when(cartRepository.findById(1L)).thenReturn(Optional.of(cart));
-        // Only calculate total items for now..
     }
 
     @Test

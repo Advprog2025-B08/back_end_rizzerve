@@ -19,5 +19,6 @@ public final class ErrorMessages {
     public static final String ITEM_NOT_FOUND_IN_CART = "Item not found in cart";
     public static final String RESULTING_QUANTITY_CAN_NOT_BE_NEGATIVE =
             "Resulting quantity can not be negative";
+    public static final String USER_NOT_FOUND = "User not found";
 }
 

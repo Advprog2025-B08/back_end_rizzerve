@@ -4,6 +4,7 @@ import id.ac.ui.cs.rizzerve.back_end_rizzerve.checkout.constants.ErrorMessages;
 import id.ac.ui.cs.rizzerve.back_end_rizzerve.checkout.model.Checkout;
 import id.ac.ui.cs.rizzerve.back_end_rizzerve.checkout.repository.CheckoutRepository;
 import id.ac.ui.cs.rizzerve.back_end_rizzerve.checkout.dto.CheckoutResponse;
+import id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_menu.repository.UserRepository;
 import id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_pesanan.model.Cart;
 import id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_pesanan.model.CartItem;
 import id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_pesanan.repository.CartRepository;
@@ -22,11 +23,13 @@ public class CheckoutServiceImpl implements CheckoutService {
 
     private final CheckoutRepository checkoutRepository;
     private final CartRepository cartRepository;
+    private final UserRepository userRepository;
 
     @Autowired
-    public CheckoutServiceImpl(CheckoutRepository checkoutRepository, CartRepository cartRepository) {
+    public CheckoutServiceImpl(CheckoutRepository checkoutRepository, CartRepository cartRepository, UserRepository userRepository) {
         this.checkoutRepository = checkoutRepository;
         this.cartRepository = cartRepository;
+        this.userRepository = userRepository;
     }
 
     @Override
@@ -88,7 +91,7 @@ public class CheckoutServiceImpl implements CheckoutService {
     @Transactional
     public void updateCartItemQuantity(Long cartId, Long itemId, int deltaQuantity) {
         Cart cart = getCart(cartId);
-        Checkout checkout = validateIfCheckoutExist(cartId);
+        Checkout checkout = validateIfCheckoutExistByCartId(cartId);
         validateIfCheckoutIsSubmitted(checkout);
 
         CartItem item = cart.getItems().stream()
@@ -142,6 +145,17 @@ public class CheckoutServiceImpl implements CheckoutService {
         checkoutRepository.flush();
     }
 
+    @Override
+    public Checkout findCheckoutsByUserId(Long userId) {
+        userRepository.findById(userId).orElseThrow(() ->
+                new NoSuchElementException(ErrorMessages.USER_NOT_FOUND)
+        );
+
+        return checkoutRepository.findByUserId(userId).orElseThrow(() ->
+                new NoSuchElementException(ErrorMessages.CHECKOUT_NOT_FOUND)
+        );
+
+    }
 
     @Override
     public Checkout submitCheckout(Long checkoutId) {
@@ -160,7 +174,7 @@ public class CheckoutServiceImpl implements CheckoutService {
         }
     }
 
-    public Checkout validateIfCheckoutExist(Long cartId) {
+    public Checkout validateIfCheckoutExistByCartId(Long cartId) {
         return checkoutRepository.findByCartId(cartId)
                 .orElseThrow(() -> new NoSuchElementException(ErrorMessages.CHECKOUT_NOT_FOUND));
     }
