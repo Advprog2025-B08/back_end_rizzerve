@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
@@ -81,6 +82,11 @@ public class RatingServiceImpl implements RatingService {
                 .collect(Collectors.toList());
         double avg = averageRatingStrategy.calculateAverage(values);
         return CompletableFuture.completedFuture(avg);
+    }
+
+    @Override
+    public Optional<Rating> getRatingByUserAndMenu(Long userId, Long menuId) {
+        return ratingRepository.findByUserIdAndMenuId(userId, menuId);
     }
 
     public void setAverageRatingStrategy(AverageRatingStrategy strategy) {
