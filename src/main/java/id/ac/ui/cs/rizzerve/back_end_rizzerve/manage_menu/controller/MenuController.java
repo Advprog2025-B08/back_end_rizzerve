@@ -40,7 +40,7 @@ public class MenuController {
         return ResponseEntity.ok(menus.join());
     }
     
-    @GetMapping
+    @GetMapping("/all")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<Menu>> getAllMenus() {
         CompletableFuture<List<Menu>> menus = menuService.getAllMenus();
@@ -48,7 +48,6 @@ public class MenuController {
     }
     
     @GetMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Menu> getMenuById(@PathVariable Long id) {
         CompletableFuture<Menu> menus = menuService.getMenuById(id);
         return ResponseEntity.ok(menus.join());

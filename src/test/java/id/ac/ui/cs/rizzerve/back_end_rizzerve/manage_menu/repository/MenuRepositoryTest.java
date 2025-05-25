@@ -25,18 +25,21 @@ public class MenuRepositoryTest {
         activeMenu1.setName("Active Menu 1");
         activeMenu1.setIsActive(true);
         activeMenu1.setDisplayOrder(3);
+        activeMenu1.setPrice(10000);
         entityManager.persist(activeMenu1);
 
         Menu activeMenu2 = new Menu();
         activeMenu2.setName("Active Menu 2");
         activeMenu2.setIsActive(true);
         activeMenu2.setDisplayOrder(1);
+        activeMenu2.setPrice(15000);
         entityManager.persist(activeMenu2);
 
         Menu inactiveMenu = new Menu();
         inactiveMenu.setName("Inactive Menu");
         inactiveMenu.setIsActive(false);
         inactiveMenu.setDisplayOrder(2);
+        inactiveMenu.setPrice(20000);
         entityManager.persist(inactiveMenu);
 
         entityManager.flush();

@@ -44,6 +44,7 @@ class RatingRepositoryTest {
         menu = new Menu();
         menu.setName("Nasi Goreng");
         menu.setDescription("Lezat");
+        menu.setPrice(20000);
         menu.setUrl("/nasi-goreng");
         menu.setIcon("icon-nasi-goreng.png");
         menu.setDisplayOrder(1);
@@ -108,6 +109,7 @@ class RatingRepositoryTest {
         Menu menu1 = new Menu();
         menu1.setName("Nasi Goreng");
         menu1.setDescription("Lezat");
+        menu1.setPrice(20000);
         menu1.setUrl("/nasi-goreng");
         menu1.setIcon("icon-nasi-goreng.png");
         menu1.setDisplayOrder(1);
@@ -119,6 +121,7 @@ class RatingRepositoryTest {
         Menu menu2 = new Menu();
         menu2.setName("Nasi Padang");
         menu2.setDescription("Pedas dan Nikmat");
+        menu2.setPrice(25000);
         menu2.setUrl("/nasi-padang");
         menu2.setIcon("icon-nasi-padang.png");
         menu2.setDisplayOrder(2);

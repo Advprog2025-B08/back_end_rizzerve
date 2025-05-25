@@ -48,6 +48,7 @@ public class MenuServiceImplTest {
         menu.setId(1L);
         menu.setName("Test Menu");
         menu.setDescription("Test Description");
+        menu.setPrice(10000);
         menu.setUrl("/test");
         menu.setIcon("test-icon");
         menu.setDisplayOrder(1);
@@ -59,6 +60,7 @@ public class MenuServiceImplTest {
         menuDTO.setId(1L);
         menuDTO.setName("Test Menu");
         menuDTO.setDescription("Test Description");
+        menuDTO.setPrice(10000);
         menuDTO.setUrl("/test");
         menuDTO.setIcon("test-icon");
         menuDTO.setDisplayOrder(1);

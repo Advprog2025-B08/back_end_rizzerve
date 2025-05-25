@@ -7,13 +7,17 @@ import id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_pesanan.repository.CartRepo
 import id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_menu.repository.MenuRepository;
 import id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_menu.model.Menu;
 import jakarta.persistence.EntityNotFoundException;
+
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.annotation.Propagation;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 
 @Service
 public class CartServiceImpl implements CartService {
@@ -52,19 +56,22 @@ public class CartServiceImpl implements CartService {
 
         Optional<CartItem> existingItem = cartItemRepository.findByCartIdAndMenuId(cart.getId(), menuId);
 
+        CartItem savedItem;
         if (existingItem.isPresent()) {
             CartItem item = existingItem.get();
             item.setQuantity(item.getQuantity() + 1);
-            return cartItemRepository.save(item);
+            savedItem = cartItemRepository.save(item);
         } else {
             CartItem newItem = CartItem.builder()
                     .cartId(cart.getId())
                     .menuId(menuId)
                     .quantity(1)
                     .build();
-
-            return cartItemRepository.save(newItem);
+            savedItem = cartItemRepository.save(newItem);
         }
+
+        return cartItemRepository.findByCartIdAndMenuIdWithMenu(cart.getId(), menuId)
+                .orElse(savedItem);
     }
 
     @Override
@@ -83,7 +90,10 @@ public class CartServiceImpl implements CartService {
         }
 
         item.setQuantity(newQuantity);
-        return cartItemRepository.save(item);
+        CartItem savedItem = cartItemRepository.save(item);
+
+        return cartItemRepository.findByCartIdAndMenuIdWithMenu(cart.getId(), menuId)
+                .orElse(savedItem);
     }
 
     @Override
@@ -101,14 +111,84 @@ public class CartServiceImpl implements CartService {
     @Transactional(readOnly = true)
     public List<CartItem> getCartItems(Long userId) {
         Cart cart = getOrCreateCart(userId);
-        return cart.getItems();
+        return cartItemRepository.findAllByCartIdWithMenu(cart.getId());
     }
 
     @Override
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void clearCart(Long userId) {
-        Cart cart = getOrCreateCart(userId);
-        cart.getItems().clear();
-        cartRepository.save(cart);
+        Optional<Cart> cartOptional = cartRepository.findByUserId(userId);
+        if (cartOptional.isPresent()) {
+            Cart cart = cartOptional.get();
+            List<CartItem> items = cartItemRepository.findAllByCartId(cart.getId());
+            if (!items.isEmpty()) {
+                cartItemRepository.deleteAll(items);
+            }
+        }
+    }
+
+    @Override
+    @Async("asyncCartExecutor")
+    public CompletableFuture<CartItem> addItemToCartAsync(Long userId, Long menuId) {
+        try {
+            CartItem result = addItemToCart(userId, menuId);
+            return CompletableFuture.completedFuture(result);
+        } catch (Exception e) {
+            CompletableFuture<CartItem> future = new CompletableFuture<>();
+            future.completeExceptionally(e);
+            return future;
+        }
+    }
+
+    @Override
+    @Async("asyncCartExecutor")
+    public CompletableFuture<CartItem> updateCartItemQuantityAsync(Long userId, Long menuId, int quantityChange) {
+        try {
+            CartItem result = updateCartItemQuantity(userId, menuId, quantityChange);
+            return CompletableFuture.completedFuture(result);
+        } catch (Exception e) {
+            CompletableFuture<CartItem> future = new CompletableFuture<>();
+            future.completeExceptionally(e);
+            return future;
+        }
+    }
+
+    @Override
+    @Async("asyncCartExecutor")
+    public CompletableFuture<Void> removeItemFromCartAsync(Long userId, Long menuId) {
+        try {
+            removeItemFromCart(userId, menuId);
+            return CompletableFuture.completedFuture(null);
+        } catch (Exception e) {
+            CompletableFuture<Void> future = new CompletableFuture<>();
+            future.completeExceptionally(e);
+            return future;
+        }
+    }
+
+    @Override
+    @Async("asyncCartExecutor")
+    public CompletableFuture<List<CartItem>> getCartItemsAsync(Long userId) {
+        try {
+            List<CartItem> result = getCartItems(userId);
+            return CompletableFuture.completedFuture(result);
+        } catch (Exception e) {
+            CompletableFuture<List<CartItem>> future = new CompletableFuture<>();
+            future.completeExceptionally(e);
+            return future;
+        }
+    }
+
+    @Override
+    @Async("asyncCartExecutor")
+    public CompletableFuture<Void> clearCartAsync(Long userId) {
+        try {
+            clearCart(userId);
+            return CompletableFuture.completedFuture(null);
+        } catch (Exception e) {
+            CompletableFuture<Void> future = new CompletableFuture<>();
+            future.completeExceptionally(e);
+            return future;
+        }
     }
 }

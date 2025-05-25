@@ -8,19 +8,36 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-
+    
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
-      - name: Set up Docker
-        uses: docker/setup-buildx-action@v2
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
 
-      - name: Build Docker image
-        run: docker build -t rizzerve-app .
+      - name: Generate version tags
+        id: version
+        run: |
+          SHORT_SHA=$(echo $GITHUB_SHA | cut -c1-8)
+          TIMESTAMP=$(date +%Y%m%d-%H%M%S)
+          echo "short_sha=$SHORT_SHA" >> $GITHUB_OUTPUT
+          echo "timestamp=$TIMESTAMP" >> $GITHUB_OUTPUT
+          echo "version_tag=v$TIMESTAMP-$SHORT_SHA" >> $GITHUB_OUTPUT
+
+      - name: Build Docker image with multiple tags
+        run: |
+          docker build -t rizzerve-app:latest .
+          docker tag rizzerve-app:latest rizzerve-app:${{ steps.version.outputs.short_sha }}
+          docker tag rizzerve-app:latest rizzerve-app:${{ steps.version.outputs.version_tag }}
 
       - name: Save Docker image to archive
-        run: docker save rizzerve-app > rizzerve-app.tar
+        run: |
+          docker save \
+            rizzerve-app:latest \
+            rizzerve-app:${{ steps.version.outputs.short_sha }} \
+            rizzerve-app:${{ steps.version.outputs.version_tag }} \
+            > rizzerve-app.tar
 
       - name: Copy image to EC2
         uses: appleboy/scp-action@master
@@ -31,14 +48,196 @@ jobs:
           source: "rizzerve-app.tar"
           target: "~/"
 
-      - name: Run Docker on EC2
+      - name: Create/Update environment file on EC2
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.HOST_DNS }}
           username: ${{ secrets.USERNAME }}
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
+            # Create .env file with database configuration
+            cat > /home/ec2-user/.env << EOF
+            DB_HOST=${{ secrets.DB_HOST }}
+            DB_PORT=${{ secrets.DB_PORT }}
+            DB_NAME=${{ secrets.DB_NAME }}
+            DB_USER=${{ secrets.DB_USER }}
+            DB_PASSWORD=${{ secrets.DB_PASSWORD }}
+            SPRING_PROFILES_ACTIVE=staging
+            DEPLOY_TIME=$(date '+%Y-%m-%d %H:%M:%S')
+            COMMIT_SHA=${{ steps.version.outputs.short_sha }}
+            VERSION_TAG=${{ steps.version.outputs.version_tag }}
+            GITHUB_RUN_ID=${{ github.run_id }}
+            EOF
+            
+            # Secure the environment file
+            chmod 600 /home/ec2-user/.env
+            
+            # Create deployment history directory
+            mkdir -p /home/ec2-user/deployments
+
+      - name: Deploy Docker container
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.HOST_DNS }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            echo "=== Starting Deployment ==="
+            echo "Version: ${{ steps.version.outputs.version_tag }}"
+            echo "Commit: ${{ steps.version.outputs.short_sha }}"
+            echo "Timestamp: $(date)"
+            
+            # Save current deployment info for rollback purposes
+            if docker ps -q -f name=rizzerve; then
+              CURRENT_IMAGE=$(docker inspect rizzerve --format='{{.Config.Image}}')
+              echo "Backing up current deployment: $CURRENT_IMAGE"
+            
+              cat > /home/ec2-user/deployments/previous.info << EOF
+            PREVIOUS_IMAGE=$CURRENT_IMAGE
+            BACKUP_TIME=$(date '+%Y-%m-%d %H:%M:%S')
+            BACKUP_FROM_DEPLOYMENT=${{ github.run_id }}
+            EOF
+            fi
+            
+            # Load the new Docker image
+            echo "Loading new Docker images..."
             docker load < ~/rizzerve-app.tar
+            
+            # Verify images were loaded
+            echo "Available images after load:"
+            docker images rizzerve-app --format "table {{.Tag}}\t{{.CreatedAt}}\t{{.Size}}"
+            
+            # Stop and remove existing container
+            echo "Stopping existing container..."
             docker stop rizzerve || true
             docker rm rizzerve || true
-            docker run -d --name rizzerve -p 8080:8080 rizzerve-app
+            
+            # Run new container with environment file
+            echo "Starting new container..."
+            docker run -d \
+              --name rizzerve \
+              -p 80:8080 \
+              --env-file /home/ec2-user/.env \
+              --restart unless-stopped \
+              rizzerve-app:latest
+            
+            # Wait for container to start
+            sleep 10
+            
+            # Comprehensive health check
+            echo "=== Performing Health Checks ==="
+            HEALTH_SCORE=0
+            TOTAL_CHECKS=4
+            
+            # Check 1: Container is running
+            if docker ps -f name=rizzerve --format "{{.Names}}" | grep -q "rizzerve"; then
+              echo "✅ Container is running"
+              HEALTH_SCORE=$((HEALTH_SCORE + 1))
+            else
+              echo "❌ Container is not running"
+            fi
+            
+            sleep 5
+            
+            # Check 2: Container hasn't restarted (indicates crashes)
+            RESTART_COUNT=$(docker inspect rizzerve --format='{{.RestartCount}}' 2>/dev/null || echo "unknown")
+            if [ "$RESTART_COUNT" = "0" ]; then
+              echo "✅ Container hasn't restarted"
+              HEALTH_SCORE=$((HEALTH_SCORE + 1))
+            else
+              echo "⚠️ Container restart count: $RESTART_COUNT"
+            fi
+            
+            sleep 5
+            
+            # Check 3: Look for Spring Boot startup in logs
+            RECENT_LOGS=$(docker logs --tail 15 rizzerve 2>&1)
+            if echo "$RECENT_LOGS" | grep -q -E "(Started.*Application|Tomcat started|initialization completed)"; then
+              echo "✅ Spring Boot application started successfully"
+              HEALTH_SCORE=$((HEALTH_SCORE + 1))
+            else
+              echo "⚠️ No clear Spring Boot startup indicator found"
+            fi
+            
+            sleep 5
+            
+            # Check 4: Java process is running
+            JAVA_PROC=$(docker exec rizzerve ps aux 2>/dev/null | grep java | grep -v grep || true)
+            if [ ! -z "$JAVA_PROC" ]; then
+              echo "✅ Java process is running inside container"
+              HEALTH_SCORE=$((HEALTH_SCORE + 1))
+            else
+              echo "⚠️ Java process check failed"
+            fi
+            
+            # Evaluate overall health
+            echo "=== Health Check Results ==="
+            echo "Health Score: $HEALTH_SCORE/$TOTAL_CHECKS"
+            
+            if [ $HEALTH_SCORE -ge 3 ]; then
+              echo "✅ Deployment successful! Application appears healthy."
+            
+              # Show container details
+              docker ps -f name=rizzerve --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}\t{{.Image}}"
+            
+              # Show some startup logs
+              echo "Container startup logs (last 10 lines):"
+              docker logs --tail 10 rizzerve
+            
+              # Save successful deployment info
+              cat > /home/ec2-user/deployments/current.info << EOF
+            CURRENT_IMAGE=rizzerve-app:latest
+            VERSION_TAG=${{ steps.version.outputs.version_tag }}
+            COMMIT_SHA=${{ steps.version.outputs.short_sha }}
+            DEPLOY_TIME=$(date '+%Y-%m-%d %H:%M:%S')
+            GITHUB_RUN_ID=${{ github.run_id }}
+            HEALTH_SCORE=$HEALTH_SCORE/$TOTAL_CHECKS
+            EOF
+            
+              echo ""
+              echo "🎉 Application should be accessible at: http://${{ secrets.HOST_DNS }}"
+              echo "📊 Monitor with: docker logs -f rizzerve"
+            
+              # Clean up deployment tar file
+              rm ~/rizzerve-app.tar
+            
+              # Keep only the 5 most recent images (don't prune all)
+              echo "Cleaning up old images (keeping 5 most recent)..."
+              docker images rizzerve-app --format "{{.Tag}} {{.CreatedAt}}" | \
+              grep -v "latest" | \
+              sort -k2 -r | \
+              tail -n +6 | \
+              awk '{print $1}' | \
+              xargs -I {} docker rmi rizzerve-app:{} 2>/dev/null || true
+            
+            elif [ $HEALTH_SCORE -ge 2 ]; then
+              echo "⚠️ Deployment completed with warnings (health score: $HEALTH_SCORE/$TOTAL_CHECKS)"
+              echo "Application may be starting up. Monitor logs: docker logs -f rizzerve"
+              echo "Container details:"
+              docker ps -f name=rizzerve --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}\t{{.Image}}"
+              echo "Recent logs:"
+              docker logs --tail 15 rizzerve
+            
+              # Still save deployment info but mark as partial
+              cat > /home/ec2-user/deployments/current.info << EOF
+            CURRENT_IMAGE=rizzerve-app:latest
+            VERSION_TAG=${{ steps.version.outputs.version_tag }}
+            COMMIT_SHA=${{ steps.version.outputs.short_sha }}
+            DEPLOY_TIME=$(date '+%Y-%m-%d %H:%M:%S')
+            GITHUB_RUN_ID=${{ github.run_id }}
+            HEALTH_SCORE=$HEALTH_SCORE/$TOTAL_CHECKS
+            STATUS=partial_success
+            EOF
+            
+              rm ~/rizzerve-app.tar
+            
+            else
+              echo "❌ Deployment failed health checks (score: $HEALTH_SCORE/$TOTAL_CHECKS)"
+              echo "Container status:"
+              docker ps -a -f name=rizzerve --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}\t{{.Image}}"
+              echo "Container logs:"
+              docker logs --tail 20 rizzerve
+              echo "Environment check:"
+              docker exec rizzerve env | grep -E "(SPRING|DB_|PORT)" 2>/dev/null || echo "Could not check environment"
+              exit 1
+            fi
