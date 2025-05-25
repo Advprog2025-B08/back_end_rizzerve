@@ -87,7 +87,7 @@ public class CheckoutController {
         }
     }
 
-    @PatchMapping("/{cartId}/items/{itemId}")
+    @PutMapping("/{cartId}/items/{itemId}")
     @ResponseStatus(HttpStatus.OK)
     public ResponseEntity<String> updateCartItemQuantity(
             @PathVariable Long cartId,
@@ -106,7 +106,7 @@ public class CheckoutController {
         }
     }
 
-    @PatchMapping("/{checkoutId}/submit")
+    @PutMapping("/{checkoutId}/submit")
     public ResponseEntity<?> submitCheckout(@PathVariable Long checkoutId) {
         try {
             Checkout submitted = checkoutService.submitCheckout(checkoutId);
