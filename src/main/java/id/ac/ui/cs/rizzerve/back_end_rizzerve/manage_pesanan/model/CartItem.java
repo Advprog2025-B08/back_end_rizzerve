@@ -29,13 +29,11 @@ public class CartItem {
     @Column(name = "menu_id")
     private Long menuId;
 
-    // Relasi ke Cart - read-only karena kita mengelola foreign key secara manual
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "cart_id", insertable = false, updatable = false)
     @JsonIgnore
     private Cart cart;
 
-    // Relasi ke Menu - read-only karena kita mengelola foreign key secara manual
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "menu_id", insertable = false, updatable = false)
     private Menu menu;
