@@ -4,6 +4,8 @@ import id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_menu.dto.MenuDTO;
 import id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_menu.exception.ResourceNotFoundException;
 import id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_menu.model.Menu;
 import id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_menu.repository.MenuRepository;
+import id.ac.ui.cs.rizzerve.back_end_rizzerve.rating.repository.RatingRepository;
+import id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_pesanan.repository.CartItemRepository;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
@@ -18,10 +20,14 @@ import java.util.stream.Collectors;
 public class MenuServiceImpl implements MenuService {
     
     private final MenuRepository menuRepository;
+    private final RatingRepository ratingRepository;
+    private final CartItemRepository cartItemRepository;
 
     @Autowired
-    public MenuServiceImpl(MenuRepository menuRepository) {
+    public MenuServiceImpl(MenuRepository menuRepository, RatingRepository ratingRepository, CartItemRepository cartItemRepository) {
         this.menuRepository = menuRepository;
+        this.ratingRepository = ratingRepository;
+        this.cartItemRepository = cartItemRepository;
     }
 
     @Async("taskExecutor")
@@ -101,12 +107,18 @@ public class MenuServiceImpl implements MenuService {
         try {
             Menu menu = menuRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Menu not found with id: " + id));
+            
+            ratingRepository.deleteByMenuId(id);
+            
+            cartItemRepository.deleteByMenuId(id);
+
             menuRepository.delete(menu);
+            
             return CompletableFuture.completedFuture(null);
-        } catch (ResourceNotFoundException e) {
-            CompletableFuture<Void> f = new CompletableFuture<>();
-            f.completeExceptionally(e);
-            return f;
+        } catch (Exception e) {
+            CompletableFuture<Void> future = new CompletableFuture<>();
+            future.completeExceptionally(e);
+            return future;
         }
     }
 }

@@ -70,10 +70,17 @@ public class MenuController {
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Map<String, String>> deleteMenu(@PathVariable Long id) {
-        menuService.deleteMenu(id);
-        
-        Map<String, String> response = new HashMap<>();
-        response.put("message", "Menu deleted successfully");
-        return ResponseEntity.ok(response);
+        try {
+            CompletableFuture<Void> deleteResult = menuService.deleteMenu(id);
+            deleteResult.join(); 
+            
+            Map<String, String> response = new HashMap<>();
+            response.put("message", "Menu deleted successfully");
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            Map<String, String> errorResponse = new HashMap<>();
+            errorResponse.put("error", "Cannot delete menu: This menu has ratings. Please delete ratings first.");
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(errorResponse);
+        }
     }
 }
