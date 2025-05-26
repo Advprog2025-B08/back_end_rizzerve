@@ -5,6 +5,7 @@ import id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_menu.exception.ResourceNotF
 import id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_menu.model.Menu;
 import id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_menu.repository.MenuRepository;
 import id.ac.ui.cs.rizzerve.back_end_rizzerve.rating.repository.RatingRepository;
+import id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_pesanan.repository.CartItemRepository;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
@@ -20,11 +21,13 @@ public class MenuServiceImpl implements MenuService {
     
     private final MenuRepository menuRepository;
     private final RatingRepository ratingRepository;
+    private final CartItemRepository cartItemRepository;
 
     @Autowired
-    public MenuServiceImpl(MenuRepository menuRepository, RatingRepository ratingRepository) {
+    public MenuServiceImpl(MenuRepository menuRepository, RatingRepository ratingRepository, CartItemRepository cartItemRepository) {
         this.menuRepository = menuRepository;
         this.ratingRepository = ratingRepository;
+        this.cartItemRepository = cartItemRepository;
     }
 
     @Async("taskExecutor")
@@ -105,10 +108,10 @@ public class MenuServiceImpl implements MenuService {
             Menu menu = menuRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Menu not found with id: " + id));
             
-            // Delete all ratings for this menu first
             ratingRepository.deleteByMenuId(id);
             
-            // Now delete the menu
+            cartItemRepository.deleteByMenuId(id);
+
             menuRepository.delete(menu);
             
             return CompletableFuture.completedFuture(null);
