@@ -29,12 +29,20 @@ import id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_menu.dto.MenuDTO;
 import id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_menu.exception.ResourceNotFoundException;
 import id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_menu.model.Menu;
 import id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_menu.repository.MenuRepository;
+import id.ac.ui.cs.rizzerve.back_end_rizzerve.rating.repository.RatingRepository;
+import id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_pesanan.repository.CartItemRepository;
 
 @ExtendWith(MockitoExtension.class)
 public class MenuServiceImplTest {
     
     @Mock
     private MenuRepository menuRepository;
+
+    @Mock
+    private RatingRepository ratingRepository;
+    
+    @Mock
+    private CartItemRepository cartItemRepository;
     
     @InjectMocks
     private MenuServiceImpl menuService;
@@ -48,6 +56,7 @@ public class MenuServiceImplTest {
         menu.setId(1L);
         menu.setName("Test Menu");
         menu.setDescription("Test Description");
+        menu.setPrice(10000);
         menu.setUrl("/test");
         menu.setIcon("test-icon");
         menu.setDisplayOrder(1);
@@ -59,6 +68,7 @@ public class MenuServiceImplTest {
         menuDTO.setId(1L);
         menuDTO.setName("Test Menu");
         menuDTO.setDescription("Test Description");
+        menuDTO.setPrice(10000);
         menuDTO.setUrl("/test");
         menuDTO.setIcon("test-icon");
         menuDTO.setDisplayOrder(1);
@@ -202,12 +212,16 @@ public class MenuServiceImplTest {
     @Test
     void deleteMenu_WhenMenuExists_ShouldDeleteMenu() throws Exception {
         when(menuRepository.findById(anyLong())).thenReturn(Optional.of(menu));
+        doNothing().when(ratingRepository).deleteByMenuId(anyLong());
+        doNothing().when(cartItemRepository).deleteByMenuId(anyLong());
         doNothing().when(menuRepository).delete(any(Menu.class));
         
         CompletableFuture<Void> futureResult = menuService.deleteMenu(1L);
         futureResult.get(); // Wait for completion
         
         verify(menuRepository, times(1)).findById(1L);
+        verify(ratingRepository, times(1)).deleteByMenuId(1L);
+        verify(cartItemRepository, times(1)).deleteByMenuId(1L);
         verify(menuRepository, times(1)).delete(menu);
     }
     

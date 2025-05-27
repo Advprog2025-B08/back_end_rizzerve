@@ -4,6 +4,7 @@ import id.ac.ui.cs.rizzerve.back_end_rizzerve.rating.controller.RatingRequest;
 import id.ac.ui.cs.rizzerve.back_end_rizzerve.rating.model.Rating;
 import org.springframework.scheduling.annotation.Async;
 
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 public interface RatingService {
@@ -12,4 +13,5 @@ public interface RatingService {
     void deleteRating(Long id);
     @Async
     CompletableFuture<Double> getAverageRatingByMenuIdAsync(Long menuId);
+    Optional<Rating> getRatingByUserAndMenu(Long userId, Long menuId);
 }

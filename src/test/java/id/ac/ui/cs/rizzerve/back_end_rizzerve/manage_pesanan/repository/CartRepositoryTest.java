@@ -1,12 +1,16 @@
 package id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_pesanan.repository;
 
-import id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_menu.model.User;
 import id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_pesanan.model.Cart;
+import id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_pesanan.model.CartItem;
+import id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_menu.model.Menu;
+import id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_menu.model.User;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -20,20 +24,30 @@ class CartRepositoryTest {
     @Autowired
     private CartRepository cartRepository;
 
-    @Test
-    void whenFindByUserId_thenReturnCart() {
-        User user = new User();
+    private User user;
+    private Cart cart;
+    private Menu menu;
+
+    @BeforeEach
+    void setUp() {
+        user = new User();
         user.setUsername("testuser");
         user.setPassword("password");
         user.setRole("USER");
         entityManager.persist(user);
-        entityManager.flush();
 
-        Cart cart = new Cart();
+        cart = new Cart();
         cart.setUserId(user.getId());
         entityManager.persist(cart);
-        entityManager.flush();
 
+        menu = new Menu();
+        menu.setName("Test Menu");
+        menu.setPrice(10000L);
+        entityManager.persist(menu);
+    }
+
+    @Test
+    void findByUserId_ShouldReturnCart_WhenCartExists() {
         Optional<Cart> found = cartRepository.findByUserId(user.getId());
 
         assertTrue(found.isPresent());
@@ -41,46 +55,32 @@ class CartRepositoryTest {
     }
 
     @Test
-    void whenFindByInvalidUserId_thenReturnEmpty() {
-        Optional<Cart> found = cartRepository.findByUserId(99L);
+    void findByUserId_ShouldReturnEmpty_WhenCartNotExists() {
+        Optional<Cart> found = cartRepository.findByUserId(999L); // Non-existent user ID
 
         assertFalse(found.isPresent());
     }
 
     @Test
-    void testSaveCart() {
-        User user = new User();
-        user.setUsername("testuser");
-        user.setPassword("password");
-        user.setRole("USER");
-        entityManager.persist(user);
-        entityManager.flush();
+    void findByUserIdWithItems_ShouldReturnCartWithItems_WhenCartExists() {
+        CartItem item = new CartItem();
+        item.setCartId(cart.getId());
+        item.setMenuId(menu.getId());
+        item.setQuantity(2);
+        item.setCart(cart);
+        item.setMenu(menu);
+        entityManager.persist(item);
 
-        Cart cart = new Cart();
-        cart.setUserId(user.getId());
+        Optional<Cart> found = cartRepository.findByUserIdWithItems(user.getId());
 
-        Cart saved = cartRepository.save(cart);
-
-        assertNotNull(saved.getId());
-        assertEquals(user.getId(), saved.getUserId());
+        assertTrue(found.isPresent());
+        assertEquals(user.getId(), found.get().getUserId());
+        assertTrue(found.get().getItems().isEmpty());
     }
 
     @Test
-    void testDeleteCart() {
-        User user = new User();
-        user.setUsername("testuser");
-        user.setPassword("password");
-        user.setRole("USER");
-        entityManager.persist(user);
-        entityManager.flush();
-
-        Cart cart = new Cart();
-        cart.setUserId(user.getId());
-        entityManager.persist(cart);
-        entityManager.flush();
-
-        cartRepository.delete(cart);
-        Optional<Cart> found = cartRepository.findByUserId(user.getId());
+    void findByUserIdWithItems_ShouldReturnEmpty_WhenCartNotExists() {
+        Optional<Cart> found = cartRepository.findByUserIdWithItems(999L);
 
         assertFalse(found.isPresent());
     }

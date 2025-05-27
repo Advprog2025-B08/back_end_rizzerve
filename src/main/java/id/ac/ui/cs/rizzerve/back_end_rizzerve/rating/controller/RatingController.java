@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 @RestController
@@ -47,5 +48,21 @@ public class RatingController {
                     response.put("average", avg);
                     return ResponseEntity.ok(response);
                 });
+    }
+
+    @GetMapping("/user-rating")
+    @PreAuthorize("hasRole('USER')")
+    public ResponseEntity<Map<String, Object>> getUserRating(
+            @RequestParam("userId") Long userId, 
+            @RequestParam("menuId") Long menuId) {
+        Optional<Rating> rating = ratingService.getRatingByUserAndMenu(userId, menuId);
+        if (rating.isPresent()) {
+            Map<String, Object> response = new HashMap<>();
+            response.put("id", rating.get().getId());
+            response.put("ratingValue", rating.get().getRatingValue());
+            return ResponseEntity.ok(response);
+        } else {
+            return ResponseEntity.notFound().build();
+        }
     }
 }

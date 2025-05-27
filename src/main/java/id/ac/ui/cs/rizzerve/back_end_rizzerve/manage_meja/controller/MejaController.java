@@ -74,8 +74,7 @@ public class MejaController {
         return ResponseEntity.ok(Map.of("message", "Meja deleted successfully", "id", mejaId));
     }
 
-    @GetMapping("/admin/read")
-    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping("/user/read")
     public ResponseEntity<?> getAllMeja() {
         List<MejaDTO> list = mejaService.getAllMeja();
         if (list.isEmpty()) {
@@ -84,8 +83,7 @@ public class MejaController {
         return ResponseEntity.ok(Map.of("meja", list));
     }
 
-    @GetMapping("/admin/read/{meja_id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping("/user/read/{meja_id}")
     public ResponseEntity<?> getMejaByNomor(@PathVariable("meja_id") int nomor) {
         MejaDTO meja = mejaService.getMejaByNomor(nomor);
         if (meja == null) {

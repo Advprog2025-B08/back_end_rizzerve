@@ -1,60 +1,83 @@
 package id.ac.ui.cs.rizzerve.back_end_rizzerve.checkout.service;
 
+import id.ac.ui.cs.rizzerve.back_end_rizzerve.checkout.constants.ErrorMessages;
 import id.ac.ui.cs.rizzerve.back_end_rizzerve.checkout.model.Checkout;
 import id.ac.ui.cs.rizzerve.back_end_rizzerve.checkout.repository.CheckoutRepository;
+import id.ac.ui.cs.rizzerve.back_end_rizzerve.checkout.dto.CheckoutResponse;
+import id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_menu.repository.UserRepository;
 import id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_pesanan.model.Cart;
 import id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_pesanan.model.CartItem;
 import id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_pesanan.repository.CartRepository;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class CheckoutServiceImpl implements CheckoutService {
 
     private final CheckoutRepository checkoutRepository;
     private final CartRepository cartRepository;
+    private final UserRepository userRepository;
 
     @Autowired
-    public CheckoutServiceImpl(CheckoutRepository checkoutRepository, CartRepository cartRepository) {
+    public CheckoutServiceImpl(CheckoutRepository checkoutRepository, CartRepository cartRepository, UserRepository userRepository) {
         this.checkoutRepository = checkoutRepository;
         this.cartRepository = cartRepository;
+        this.userRepository = userRepository;
     }
 
     @Override
     public Checkout createCheckout(Long cartId) {
         // Facade logic: Mengatur checkout dengan menyembunyikan detail implementasi
-        Checkout checkout = buildCheckout(cartId);
+        Checkout checkout = createCheckoutIfValid(cartId);
 
         return checkoutRepository.save(checkout);
     }
 
     @Override
+    @Transactional
     public void deleteCheckout(Long checkoutID) {
         Checkout checkout = checkoutRepository.findById(checkoutID)
-                .orElseThrow(() -> new NoSuchElementException("Checkout not found"));
-
-        if (checkout.getIsSubmitted()) {
-            throw new IllegalStateException("Cannot cancel a submitted checkout");
-        }
-
+                .orElseThrow(() -> new NoSuchElementException(ErrorMessages.CHECKOUT_NOT_FOUND));
         checkoutRepository.delete(checkout);
+        checkoutRepository.flush();
     }
 
     private int calculateTotalPrice(Cart cart) {
-        // Menghitung total harga berdasarkan cart yang ada
         return cart.getItems().stream()
-                .mapToInt(CartItem::getQuantity) // Belum hitung total harga karena harus update model cartitem
+                .mapToInt(cartItem -> Math.toIntExact(cartItem.getQuantity() * cartItem.getMenu().getPrice()))
                 .sum();
     }
 
-    private Checkout buildCheckout(Long cartId) {
-        Cart cart = cartRepository.findById(cartId)
-                .orElseThrow(() -> new IllegalArgumentException("Cart not found"));
+    private Checkout createCheckoutIfValid(Long cartId) {
+        Cart cart = getCart(cartId);
+        validateExistingCheckout(cartId);
+        return buildCheckoutFromCart(cart);
+    }
 
+    private Cart getCart(Long cartId) {
+        return cartRepository.findById(cartId)
+                .orElseThrow(() -> new IllegalArgumentException(ErrorMessages.CART_NOT_FOUND));
+
+    }
+
+    private void validateExistingCheckout(Long cartId) {
+        Optional<Checkout> existingCheckout = checkoutRepository.findByCartId(cartId);
+        if (existingCheckout.isPresent()) {
+            if (existingCheckout.get().getIsSubmitted()) {
+                throw new IllegalStateException(ErrorMessages.CHECKOUT_ALREADY_SUBMITTED);
+            }
+            throw new IllegalStateException(ErrorMessages.CHECKOUT_ALREADY_CREATED);
+        }
+    }
+
+    private Checkout buildCheckoutFromCart(Cart cart) {
         return Checkout.builder()
                 .user(cart.getUser())
                 .cart(cart)
@@ -65,25 +88,29 @@ public class CheckoutServiceImpl implements CheckoutService {
     }
 
     @Override
+    @Transactional
     public void updateCartItemQuantity(Long cartId, Long itemId, int deltaQuantity) {
-        Cart cart = cartRepository.findById(cartId)
-                .orElseThrow(() -> new IllegalArgumentException("Cart not found"));
+        Cart cart = getCart(cartId);
+        Checkout checkout = validateIfCheckoutExistByCartId(cartId);
+        validateIfCheckoutIsSubmitted(checkout);
 
         CartItem item = cart.getItems().stream()
                 .filter(ci -> ci.getId().equals(itemId))
                 .findFirst()
-                .orElseThrow(() -> new IllegalArgumentException("Item not found in this cart"));
+                .orElseThrow(() -> new IllegalArgumentException(ErrorMessages.ITEM_NOT_FOUND_IN_CART));
 
         int updatedQuantity = item.getQuantity() + deltaQuantity;
 
         if (updatedQuantity < 0) {
-            throw new IllegalArgumentException("Quantity cannot be negative");
+            throw new IllegalArgumentException(ErrorMessages.RESULTING_QUANTITY_CAN_NOT_BE_NEGATIVE);
         } else if (updatedQuantity == 0) {
             cart.getItems().remove(item);
         } else {
             item.setQuantity(updatedQuantity);
         }
 
+        int newPrice = calculateTotalPrice(cart);
+        checkout.setTotalPrice(newPrice);
         cartRepository.save(cart);
     }
 
@@ -93,16 +120,63 @@ public class CheckoutServiceImpl implements CheckoutService {
     }
 
     @Override
+    public List<CheckoutResponse> getSubmittedCheckouts() {
+        List<Checkout> submittedCheckouts = checkoutRepository.findByIsSubmittedTrue();
+        return submittedCheckouts.stream()
+                .map(checkout -> CheckoutResponse.builder()
+                        .id(checkout.getId())
+                        .cartId(checkout.getCart().getId())
+                        .userId(checkout.getCart().getUser().getId())
+                        .totalPrice(calculateTotalPrice(checkout.getCart()))
+                        .isSubmitted(checkout.getIsSubmitted())
+                        .createdAt(checkout.getCreatedAt().toString())
+                        .build())
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public void deleteCheckoutAfterProcessing(Long checkoutId) {
+        Checkout checkout = checkoutRepository.findById(checkoutId)
+                .orElseThrow(() -> new NoSuchElementException(ErrorMessages.CHECKOUT_NOT_FOUND));
+        if (!checkout.getIsSubmitted()) {
+            throw new IllegalStateException(ErrorMessages.CHECKOUT_HAS_NOT_BEEN_SUBMITTED);
+        }
+        checkoutRepository.delete(checkout);
+        checkoutRepository.flush();
+    }
+
+    @Override
+    public Checkout findCheckoutsByUserId(Long userId) {
+        userRepository.findById(userId).orElseThrow(() ->
+                new NoSuchElementException(ErrorMessages.USER_NOT_FOUND)
+        );
+
+        return checkoutRepository.findByUserId(userId).orElseThrow(() ->
+                new NoSuchElementException(ErrorMessages.CHECKOUT_NOT_FOUND)
+        );
+
+    }
+
+    @Override
     public Checkout submitCheckout(Long checkoutId) {
         Checkout checkout = checkoutRepository.findById(checkoutId)
-                .orElseThrow(() -> new NoSuchElementException("Checkout not found"));
+                .orElseThrow(() -> new NoSuchElementException(ErrorMessages.CHECKOUT_NOT_FOUND));
 
-        if (checkout.getIsSubmitted()) {
-            throw new IllegalStateException("Checkout already submitted");
-        }
+        validateIfCheckoutIsSubmitted(checkout);
 
         checkout.setIsSubmitted(true);
         return checkoutRepository.save(checkout);
+    }
+
+    public void validateIfCheckoutIsSubmitted(Checkout checkout) {
+        if (checkout.getIsSubmitted()) {
+            throw new IllegalStateException(ErrorMessages.CHECKOUT_ALREADY_SUBMITTED);
+        }
+    }
+
+    public Checkout validateIfCheckoutExistByCartId(Long cartId) {
+        return checkoutRepository.findByCartId(cartId)
+                .orElseThrow(() -> new NoSuchElementException(ErrorMessages.CHECKOUT_NOT_FOUND));
     }
 
 }
