@@ -17,11 +17,7 @@ jobs:
       - name: Restart Rizzerve Application on EC2
         uses: appleboy/ssh-action@master
         with:
-<<<<<<< HEAD
           host: ${{ secrets.STAGING_HOST_DNS }}
-=======
-          host: ${{ secrets.HOST_DNS }}
->>>>>>> origin/master
           username: ${{ secrets.USERNAME }}
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
@@ -36,11 +32,7 @@ jobs:
             DB_NAME=${{ secrets.DB_NAME }}
             DB_USER=${{ secrets.DB_USER }}
             DB_PASSWORD=${{ secrets.DB_PASSWORD }}
-<<<<<<< HEAD
             SPRING_PROFILES_ACTIVE=staging
-=======
-            SPRING_PROFILES_ACTIVE=master
->>>>>>> origin/master
             RESTART_TIME=$(date '+%Y-%m-%d %H:%M:%S')
             EOF
             
@@ -83,8 +75,4 @@ jobs:
             
             # Check container status
             echo "Container status:"
-<<<<<<< HEAD
             docker ps -f name=rizzerve --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}\t{{.Image}}"
-=======
-            docker ps -f name=rizzerve --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}\t{{.Image}}"
->>>>>>> origin/master
