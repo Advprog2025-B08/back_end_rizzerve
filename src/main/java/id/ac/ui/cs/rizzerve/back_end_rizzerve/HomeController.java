@@ -10,6 +10,6 @@ public class HomeController {
     @GetMapping("/")
     @ResponseBody
     public String home() {
-        return "tes backend aman";
+        return "tes backend aman adpro 25";
     }
 }
