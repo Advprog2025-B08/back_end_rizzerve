@@ -1,5 +1,6 @@
 package id.ac.ui.cs.rizzerve.back_end_rizzerve.checkout.service;
 
+import id.ac.ui.cs.rizzerve.back_end_rizzerve.checkout.dto.CheckoutResponse;
 import id.ac.ui.cs.rizzerve.back_end_rizzerve.checkout.model.Checkout;
 import id.ac.ui.cs.rizzerve.back_end_rizzerve.checkout.repository.CheckoutRepository;
 import id.ac.ui.cs.rizzerve.back_end_rizzerve.manage_menu.model.Menu;
@@ -22,6 +23,7 @@ import org.mockito.Mockito;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -33,7 +35,6 @@ class CheckoutServiceImplTest {
     private CartRepository cartRepository;
     private UserRepository userRepository;
     private CartItemRepository cartItemRepository;
-    private MenuRepository menuRepository;
 
     private Cart cart;
     private int expectedTotal;
@@ -42,7 +43,6 @@ class CheckoutServiceImplTest {
     void setUp() {
         checkoutRepository = mock(CheckoutRepository.class);
         cartRepository = mock(CartRepository.class);
-        menuRepository = mock(MenuRepository.class);
         cartItemRepository = mock(CartItemRepository.class);
 
         checkoutService = new CheckoutServiceImpl(checkoutRepository, cartRepository, userRepository);
@@ -149,12 +149,10 @@ class CheckoutServiceImplTest {
         // Simulate quantity decrease to 0 (deletion)
         checkoutCart.getItems().removeIf(item -> item.getId().equals(itemToRemove.getId()));
 
-        // Act
         when(cartRepository.save(any(Cart.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
         cartRepository.save(checkoutCart);
 
-        // Assert
         assertEquals(1, checkoutCart.getItems().size()); // awalnya 2, sekarang 1
         assertFalse(checkoutCart.getItems().contains(itemToRemove));
     }
@@ -198,4 +196,134 @@ class CheckoutServiceImplTest {
         verify(checkoutRepository).delete(checkout);
     }
 
+    @Test
+    void testFindByIdWithValidCheckoutId() {
+        // Arrange
+        Long checkoutId = 1L;
+        Checkout checkout = new Checkout();
+        checkout.setId(checkoutId);
+
+        when(checkoutRepository.findById(checkoutId)).thenReturn(Optional.of(checkout));
+
+        // Act
+        Optional<Checkout> result = checkoutService.findById(checkoutId);
+
+        // Assert
+        assertTrue(result.isPresent());
+        assertEquals(checkoutId, result.get().getId());
+        verify(checkoutRepository, times(1)).findById(checkoutId);
+    }
+
+    @Test
+    void testFindByIdWithInvalidCheckoutId() {
+        // Arrange
+        Long checkoutId = 1L;
+        when(checkoutRepository.findById(checkoutId)).thenReturn(Optional.empty());
+
+        // Act
+        Optional<Checkout> result = checkoutService.findById(checkoutId);
+
+        // Assert
+        assertFalse(result.isPresent());
+        verify(checkoutRepository, times(1)).findById(checkoutId);
+    }
+
+    @Test
+    void testSubmitCheckoutWithValidCheckoutId() {
+        Long checkoutId = 1L;
+        Checkout checkout = new Checkout();
+        checkout.setId(checkoutId);
+        checkout.setIsSubmitted(false);
+
+        when(checkoutRepository.findById(checkoutId)).thenReturn(Optional.of(checkout));
+        when(checkoutRepository.save(any(Checkout.class))).thenReturn(checkout);
+
+        Checkout result = checkoutService.submitCheckout(checkoutId);
+
+        assertTrue(result.getIsSubmitted());
+        verify(checkoutRepository, times(1)).findById(checkoutId);
+        verify(checkoutRepository, times(1)).save(checkout);
+    }
+
+    @Test
+    void testSubmitCheckoutWithInvalidCheckoutId() {
+        Long checkoutId = 1L;
+        when(checkoutRepository.findById(checkoutId)).thenReturn(Optional.empty());
+
+        assertThrows(NoSuchElementException.class, () -> checkoutService.submitCheckout(checkoutId));
+        verify(checkoutRepository, times(1)).findById(checkoutId);
+    }
+
+    @Test
+    void testCreateCheckoutWithInvalidCartId() {
+        Long invalidCartId = 999L;
+        when(cartRepository.findById(invalidCartId)).thenReturn(Optional.empty());
+
+        assertThrows(IllegalArgumentException.class, () -> checkoutService.createCheckout(invalidCartId));
+        verify(cartRepository, times(1)).findById(invalidCartId);
+    }
+
+    @Test
+    void testDeleteCheckoutWithInvalidCheckoutId() {
+        Long invalidCheckoutId = 999L;
+        when(checkoutRepository.findById(invalidCheckoutId)).thenReturn(Optional.empty());
+
+        assertThrows(NoSuchElementException.class, () -> checkoutService.deleteCheckout(invalidCheckoutId));
+        verify(checkoutRepository, times(1)).findById(invalidCheckoutId);
+    }
+
+    @Test
+    void testSubmitCheckoutWithAlreadySubmittedCheckout() {
+        Long checkoutId = 1L;
+        Checkout checkout = new Checkout();
+        checkout.setId(checkoutId);
+        checkout.setIsSubmitted(true);
+
+        when(checkoutRepository.findById(checkoutId)).thenReturn(Optional.of(checkout));
+
+        assertThrows(IllegalStateException.class, () -> checkoutService.submitCheckout(checkoutId));
+        verify(checkoutRepository, times(1)).findById(checkoutId);
+    }
+
+    @Test
+    void testUpdateCartItemQuantityWithInvalidCartId() {
+        Long invalidCartId = 999L;
+        Long itemId = 1L;
+        int deltaQuantity = 2;
+
+        when(cartRepository.findById(invalidCartId)).thenReturn(Optional.empty());
+
+        assertThrows(IllegalArgumentException.class, () ->
+                checkoutService.updateCartItemQuantity(invalidCartId, itemId, deltaQuantity));
+        verify(cartRepository, times(1)).findById(invalidCartId);
+    }
+
+    @Test
+    void testCreateCheckoutWithEmptyCart() {
+        Long cartId = 1L;
+        Cart emptyCart = new Cart();
+        emptyCart.setItems(List.of());
+
+        when(cartRepository.findById(cartId)).thenReturn(Optional.of(emptyCart));
+    }
+
+    @Test
+    void testUpdateCartItemQuantityToResultInNegativeQuantity() {
+        // Arrange
+        Long cartId = 1L;
+        Long itemId = 1L;
+        int deltaQuantity = -5;
+
+        CartItem cartItem = new CartItem();
+        cartItem.setQuantity(2);
+
+        Cart cart = new Cart();
+        cart.setItems(List.of(cartItem));
+
+        when(cartRepository.findById(cartId)).thenReturn(Optional.of(cart));
+        when(cartItemRepository.findById(itemId)).thenReturn(Optional.of(cartItem));
+
+        assertThrows(NoSuchElementException.class, () ->
+                checkoutService.updateCartItemQuantity(cartId, itemId, deltaQuantity));
+    }
 }
