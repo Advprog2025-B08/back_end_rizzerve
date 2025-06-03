@@ -137,4 +137,20 @@ public class MenuControllerTest {
         assertEquals("Menu deleted successfully", response.getBody().get("message"));
         verify(menuService, times(1)).deleteMenu(1L);
     }
+
+    @Test
+    void deleteMenu_ShouldReturnConflictWhenDeletionFails() throws Exception {
+        CompletableFuture<Void> failedFuture = new CompletableFuture<>();
+        failedFuture.completeExceptionally(new RuntimeException("Cannot delete menu with ratings"));
+        
+        when(menuService.deleteMenu(anyLong())).thenReturn(failedFuture);
+
+        ResponseEntity<Map<String, String>> response = menuController.deleteMenu(1L);
+
+        assertEquals(HttpStatus.CONFLICT, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertEquals("Cannot delete menu: This menu has ratings. Please delete ratings first.", 
+                     response.getBody().get("error"));
+        verify(menuService, times(1)).deleteMenu(1L);
+    }
 }
